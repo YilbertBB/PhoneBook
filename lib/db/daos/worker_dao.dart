@@ -236,7 +236,9 @@ class WorkerDao {
         'phone',
         'fecha_cumpleannos',
         'departamento_id',
+        'departamento_nombre',
         'local_id',
+        'local_nombre',
       ],
       limit: limit,
       offset: offset,
@@ -257,6 +259,8 @@ class WorkerDao {
         fullName: '$name $lastName'.trim(),
         departamentoID: map['departamento_id'] as int?,
         localId: map['local_id'] as int?,
+        departmentName: (map['departamento_nombre'] ?? '') as String,
+        localName: (map['local_nombre'] ?? '') as String,
         fechaCumpleannos: (map['fecha_cumpleannos'] ?? '') as String,
       );
     }).toList();
@@ -289,7 +293,9 @@ class WorkerDao {
         'phone',
         'fecha_cumpleannos',
         'departamento_id',
+        'departamento_nombre',
         'local_id',
+        'local_nombre',
       ],
       where: 'name LIKE ? OR last_name LIKE ? OR carnet_id LIKE ?',
       whereArgs: [searchTerm, searchTerm, searchTerm],
@@ -312,6 +318,8 @@ class WorkerDao {
         fullName: '$name $lastName'.trim(),
         departamentoID: map['departamento_id'] as int?,
         localId: map['local_id'] as int?,
+        departmentName: (map['departamento_nombre'] ?? '') as String,
+        localName: (map['local_nombre'] ?? '') as String,
         fechaCumpleannos: (map['fecha_cumpleannos'] ?? '') as String,
       );
     }).toList();

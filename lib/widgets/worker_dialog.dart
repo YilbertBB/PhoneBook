@@ -258,7 +258,10 @@ class WorkerDialogState extends State<WorkerDialog> {
               if (departments.isNotEmpty)
                 DropdownButtonFormField<int?>(
                   isExpanded: true,
-                  initialValue: _selectedDepartmentId,
+                  initialValue:
+                      departments.any((d) => d.id == _selectedDepartmentId)
+                      ? _selectedDepartmentId
+                      : null,
                   decoration: const InputDecoration(
                     labelText: 'Departamento (opcional)',
                     prefixIcon: Icon(Icons.business),
@@ -290,7 +293,9 @@ class WorkerDialogState extends State<WorkerDialog> {
               if (locals.isNotEmpty)
                 DropdownButtonFormField<int?>(
                   isExpanded: true,
-                  initialValue: _selectedLocalId,
+                  initialValue: locals.any((l) => l.id == _selectedLocalId)
+                      ? _selectedLocalId
+                      : null,
                   decoration: const InputDecoration(
                     labelText: 'Local (opcional)',
                     prefixIcon: Icon(Icons.location_on),
@@ -368,19 +373,15 @@ class WorkerDialogState extends State<WorkerDialog> {
       );
 
       // Obtener objetos completos si existen
-      final Department? department =
-          (_selectedDepartmentId != null
-                  ? widget.departmentProvider.getDepartmentById(
-                      _selectedDepartmentId!,
-                    )
-                  : null)
-              as Department?;
+      final Department? department = _selectedDepartmentId != null
+          ? await widget.departmentProvider.getDepartmentById(
+              _selectedDepartmentId!,
+            )
+          : null;
 
-      final Local? local =
-          (_selectedLocalId != null
-                  ? widget.localProvider.getLocalById(_selectedLocalId!)
-                  : null)
-              as Local?;
+      final Local? local = _selectedLocalId != null
+          ? await widget.localProvider.getLocalById(_selectedLocalId!)
+          : null;
 
       // Crear el Worker con los objetos completos
       final worker = Worker(

@@ -484,7 +484,7 @@ class WorkersScreenState extends State<WorkersScreen> {
                   color: Colors.orange[700]!,
                   onTap: () {
                     Navigator.pop(context);
-                    _showDepartmentDetails(worker.department!);
+                    _showDepartmentDetails(worker.department!.id);
                   },
                 ),
 
@@ -496,7 +496,7 @@ class WorkersScreenState extends State<WorkersScreen> {
                   color: Colors.green[700]!,
                   onTap: () {
                     Navigator.pop(context);
-                    _showLocalDetails(worker.local!);
+                    _showLocalDetails(worker.local!.id);
                   },
                 ),
 
@@ -926,6 +926,8 @@ class WorkersScreenState extends State<WorkersScreen> {
                         ],
                       ),
                     ],
+
+                    // Mostrar Departamento y Local si existen
                   ],
                 ),
               ),
@@ -948,119 +950,6 @@ class WorkersScreenState extends State<WorkersScreen> {
       ),
     );
   }
-
-  // Widget _buildWorkerCard(Worker worker, bool isAdmin) {
-  //   return Card(
-  //     elevation: 2,
-  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-  //     child: InkWell(
-  //       onTap: () {
-  //         _showWorkerDetails(worker, isAdmin);
-  //       },
-  //       borderRadius: BorderRadius.circular(12),
-  //       child: Container(
-  //         padding: const EdgeInsets.all(16),
-  //         child: Row(
-  //           children: [
-  //             // Avatar con iniciales
-  //             Container(
-  //               width: 48,
-  //               height: 48,
-  //               decoration: BoxDecoration(
-  //                 color: Colors.blue[100],
-  //                 shape: BoxShape.circle,
-  //               ),
-  //               child: Center(
-  //                 child: Text(
-  //                   worker.initials,
-  //                   style: TextStyle(
-  //                     color: Colors.blue[700],
-  //                     fontWeight: FontWeight.bold,
-  //                     fontSize: 18,
-  //                   ),
-  //                 ),
-  //               ),
-  //             ),
-
-  //             SizedBox(width: 16),
-
-  //             // Información principal
-  //             Expanded(
-  //               child: Column(
-  //                 crossAxisAlignment: CrossAxisAlignment.start,
-  //                 children: [
-  //                   Text(
-  //                     worker.fullName,
-  //                     style: TextStyle(
-  //                       fontWeight: FontWeight.bold,
-  //                       fontSize: 16,
-  //                       color: Colors.grey[800],
-  //                     ),
-  //                   ),
-
-  //                   if (worker.phone.isNotEmpty) ...[
-  //                     SizedBox(height: 4),
-  //                     Row(
-  //                       children: [
-  //                         Icon(Icons.phone, size: 14, color: Colors.blue[600]),
-  //                         SizedBox(width: 4),
-  //                         Text(
-  //                           worker.phone,
-  //                           style: TextStyle(
-  //                             fontSize: 13,
-  //                             color: Colors.blue[600],
-  //                           ),
-  //                         ),
-  //                       ],
-  //                     ),
-  //                   ],
-  //                 ],
-  //               ),
-  //             ),
-
-  //             // Menú de acciones (solo para admin)
-  //             if (isAdmin)
-  //               PopupMenuButton<String>(
-  //                 icon: Icon(Icons.more_vert, color: Colors.blue[700]),
-  //                 shape: RoundedRectangleBorder(
-  //                   borderRadius: BorderRadius.circular(8),
-  //                 ),
-  //                 itemBuilder: (context) => [
-  //                   PopupMenuItem<String>(
-  //                     value: 'edit',
-  //                     child: Row(
-  //                       children: [
-  //                         Icon(Icons.edit, color: Colors.blue[700], size: 20),
-  //                         SizedBox(width: 8),
-  //                         Text('Editar'),
-  //                       ],
-  //                     ),
-  //                   ),
-  //                   PopupMenuItem<String>(
-  //                     value: 'delete',
-  //                     child: Row(
-  //                       children: [
-  //                         Icon(Icons.delete, color: Colors.red, size: 20),
-  //                         SizedBox(width: 8),
-  //                         Text('Eliminar'),
-  //                       ],
-  //                     ),
-  //                   ),
-  //                 ],
-  //                 onSelected: (value) {
-  //                   if (value == 'edit') {
-  //                     _showEditWorkerDialog(worker);
-  //                   } else if (value == 'delete') {
-  //                     _showDeleteConfirmation(worker);
-  //                   }
-  //                 },
-  //               ),
-  //           ],
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
 
   Widget _buildDetailSection({
     required IconData icon,
@@ -1166,7 +1055,22 @@ class WorkersScreenState extends State<WorkersScreen> {
     );
   }
 
-  void _showDepartmentDetails(Department department) {
+  void _showDepartmentDetails(int departmentId) async {
+    final departmentProvider = Provider.of<DepartmentProvider>(
+      context,
+      listen: false,
+    );
+
+    // Cargar departamento completo desde el provider
+    final department = await departmentProvider.getDepartmentById(departmentId);
+
+    if (department == null) {
+      _showSnackBar('Departamento no encontrado', isError: true);
+      return;
+    }
+
+    if (!mounted) return;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1228,7 +1132,19 @@ class WorkersScreenState extends State<WorkersScreen> {
     );
   }
 
-  void _showLocalDetails(Local local) {
+  void _showLocalDetails(int localId) async {
+    final localProvider = Provider.of<LocalProvider>(context, listen: false);
+
+    // Cargar local completo desde el provider
+    final local = await localProvider.getLocalById(localId);
+
+    if (local == null) {
+      _showSnackBar('Local no encontrado', isError: true);
+      return;
+    }
+
+    if (!mounted) return;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1345,7 +1261,6 @@ class WorkersScreenState extends State<WorkersScreen> {
     if (phoneNumber.isEmpty) {
       return;
     }
-
     _showSnackBar('📞 Llamando a $phoneNumber...');
 
     try {

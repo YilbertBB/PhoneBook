@@ -91,7 +91,9 @@ class MyApp extends StatelessWidget {
 
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (authProvider.isAuthenticated) {
-                    ServiceLocator().tokenExpiryManager.startMonitoring(context);
+                    ServiceLocator().tokenExpiryManager.startMonitoring(
+                      context,
+                    );
 
                     // ========== AGREGAR VERIFICACIÓN DE ACTUALIZACIONES ==========
                     // Esperar un poco para que la app termine de cargar

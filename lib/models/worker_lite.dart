@@ -13,6 +13,8 @@ class WorkerLite {
   final bool hasPhone;
   final int? departamentoID;
   final int? localId;
+  final String? departmentName;
+  final String? localName;
   final String? fechaCumpleannos;
 
   WorkerLite({
@@ -25,6 +27,8 @@ class WorkerLite {
     required this.fullName,
     this.departamentoID,
     this.localId,
+    this.departmentName,
+    this.localName,
     this.fechaCumpleannos,
   }) : hasPhone = phone.isNotEmpty;
 
@@ -35,6 +39,30 @@ class WorkerLite {
     final carnetID = _parseString(json['carnetIdentidad']);
     final phone = _parseString(json['numeroCelular']);
 
+    // Extraer departamento (puede venir como objeto o como ID)
+    int? departamentoID;
+    String? departmentName;
+    if (json['departamento'] is Map) {
+      departamentoID = json['departamento']['id'];
+      departmentName =
+          json['departamento']['nombreDepartamento'] ??
+          json['departamento']['nombre'];
+    } else {
+      departamentoID = json['departamentoId'];
+      // Si solo tenemos ID, no tenemos el nombre
+    }
+
+    // Extraer local (puede venir como objeto o como ID)
+    int? localId;
+    String? localName;
+    if (json['local'] is Map) {
+      localId = json['local']['id'];
+      localName = json['local']['nombreLocal'] ?? json['local']['nombre'];
+    } else {
+      localId = json['localId'];
+      // Si solo tenemos ID, no tenemos el nombre
+    }
+
     return WorkerLite(
       id: json['id'] ?? 0,
       name: name,
@@ -43,8 +71,10 @@ class WorkerLite {
       phone: phone,
       initials: _calculateInitials(name, lastName),
       fullName: '$name $lastName'.trim(),
-      departamentoID: json['departamentoId'] ?? json['departamento']?['id'],
-      localId: json['localId'] ?? json['local']?['id'],
+      departamentoID: departamentoID,
+      localId: localId,
+      departmentName: departmentName,
+      localName: localName,
       fechaCumpleannos: _parseString(json['fechaCumpleanno']),
     );
   }
@@ -61,6 +91,8 @@ class WorkerLite {
       fullName: worker.fullName,
       departamentoID: worker.departamentoID,
       localId: worker.localId,
+      departmentName: worker.department?.name,
+      localName: worker.local?.name,
       fechaCumpleannos: worker.fechaCumpleannos,
     );
   }
@@ -80,6 +112,19 @@ class WorkerLite {
 
   // Convertir a Worker completo (cuando se necesite detalles)
   Worker toWorker({Department? department, Local? local}) {
+    // Si no se pasan department/local como parámetros, intentar crearlos desde los datos disponibles
+    final resolvedDepartment =
+        department ??
+        (departamentoID != null && departmentName != null
+            ? Department(id: departamentoID!, name: departmentName!, phone: '')
+            : null);
+
+    final resolvedLocal =
+        local ??
+        (localId != null && localName != null
+            ? Local(id: localId!, name: localName!, phone: '')
+            : null);
+
     return Worker(
       id: id,
       name: name,
@@ -88,8 +133,8 @@ class WorkerLite {
       phone: phone,
       address: '', // No disponible en lite
       fechaCumpleannos: fechaCumpleannos ?? '',
-      department: department,
-      local: local,
+      department: resolvedDepartment,
+      local: resolvedLocal,
     );
   }
 

@@ -95,6 +95,23 @@ class Worker implements BaseModel {
     Department? department,
     Local? local,
   }) {
+    // Si no se pasan department/local como parámetros, intentar crearlos desde los datos disponibles en lite
+    final resolvedDepartment =
+        department ??
+        (lite.departamentoID != null && lite.departmentName != null
+            ? Department(
+                id: lite.departamentoID!,
+                name: lite.departmentName!,
+                phone: '',
+              )
+            : null);
+
+    final resolvedLocal =
+        local ??
+        (lite.localId != null && lite.localName != null
+            ? Local(id: lite.localId!, name: lite.localName!, phone: '')
+            : null);
+
     final worker = Worker(
       id: lite.id,
       name: lite.name,
@@ -103,8 +120,8 @@ class Worker implements BaseModel {
       phone: lite.phone,
       address: '', // No disponible en lite
       fechaCumpleannos: lite.fechaCumpleannos ?? '',
-      department: department,
-      local: local,
+      department: resolvedDepartment,
+      local: resolvedLocal,
     );
 
     worker._initializeCache();
