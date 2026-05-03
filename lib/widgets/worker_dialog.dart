@@ -9,7 +9,7 @@ import '../../utils/dialog_error_handler.dart'; // <-- IMPORTAR NUEVO HELPER
 
 class WorkerDialog extends StatefulWidget {
   final Worker? worker;
-  final Function(Worker) onSave;
+  final Future<bool> Function(Worker) onSave;
   final DepartmentProvider departmentProvider;
   final LocalProvider localProvider;
 
@@ -121,6 +121,7 @@ class WorkerDialogState extends State<WorkerDialog> {
         return 'La fecha de cumpleaños no puede ser futura';
       }
     } catch (e) {
+      debugPrint('[WorkerDialog][VALIDATION] Birthday parse exception: $e');
       return 'Fecha inválida';
     }
 
@@ -351,10 +352,20 @@ class WorkerDialogState extends State<WorkerDialog> {
   }
 
   void _handleSave() async {
-    if (!_formKey.currentState!.validate()) return;
+    final mode = widget.worker != null ? 'EDIT' : 'CREATE';
+    debugPrint('[WorkerDialog][$mode] Save pressed');
+
+    if (!_formKey.currentState!.validate()) {
+      debugPrint('[WorkerDialog][$mode] Validation failed');
+      return;
+    }
 
     try {
       setState(() => _isSaving = true);
+      debugPrint('[WorkerDialog][$mode] Validation passed');
+      debugPrint(
+        '[WorkerDialog][$mode] Selected departmentId=$_selectedDepartmentId localId=$_selectedLocalId',
+      );
 
       // Obtener objetos completos si existen
       final Department? department =
@@ -385,9 +396,14 @@ class WorkerDialogState extends State<WorkerDialog> {
         cumpleannoId: null,
       );
 
+      debugPrint('[WorkerDialog][$mode] Worker built: ${worker.toJson()}');
+      debugPrint('[WorkerDialog][$mode] DTO: ${worker.toCreateDto()}');
+
       // Intentar guardar
-      await widget.onSave(worker);
-      if (mounted) {
+      final success = await widget.onSave(worker);
+      debugPrint('[WorkerDialog][$mode] onSave returned success=$success');
+
+      if (success && mounted) {
         Navigator.of(context).pop();
 
         DialogErrorHandler.showSuccessSnackbar(
@@ -398,9 +414,14 @@ class WorkerDialogState extends State<WorkerDialog> {
         );
       }
 
+      if (!success) {
+        debugPrint('[WorkerDialog][$mode] Save failed, dialog remains open');
+      }
+
       // Si llega aquí, fue exitoso
     } catch (e) {
       // Manejar errores específicos de trabajadores
+      debugPrint('[WorkerDialog][$mode] Exception: $e');
       String errorTitle =
           'Error al ${widget.worker != null ? 'actualizar' : 'crear'} trabajador';
       // String friendlyError = _getWorkerSpecificErrorMessage(e.toString());

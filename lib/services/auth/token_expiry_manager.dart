@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../navigation/app_navigator.dart';
 import '../../providers/auth_provider.dart';
+import '../../screen/auth/login_screen.dart';
 import '../secure_token_manager.dart';
 import '../service_locator.dart';
 
@@ -11,6 +13,7 @@ class TokenExpiryManager {
   Timer? _expiryTimer;
   Timer? _warningTimer;
   BuildContext? _currentContext;
+  bool _isShowingExpiredDialog = false;
 
   // Configuración
   static const Duration _warningThreshold = Duration(minutes: 5);
@@ -19,6 +22,9 @@ class TokenExpiryManager {
   void startMonitoring(BuildContext context) {
     // Guardar contexto para uso posterior
     _currentContext = context;
+
+    if (_expiryTimer != null) return;
+    _isShowingExpiredDialog = false;
 
     // Verificar periódicamente
     _expiryTimer = Timer.periodic(_checkInterval, (_) {
@@ -40,13 +46,13 @@ class TokenExpiryManager {
   }
 
   Future<void> _checkTokenExpiry() async {
-    if (_currentContext == null) return;
+    final context = _navigationContext;
+    if (context == null) return;
 
     final token = await _tokenManager.getToken();
     if (token == null) return;
 
     final expiryInfo = _getTokenExpiryInfo(token);
-    final context = _currentContext!;
     if (expiryInfo['isExpired'] == true) {
       if (context.mounted) {
         _handleTokenExpired(context);
@@ -79,14 +85,20 @@ class TokenExpiryManager {
     }
   }
 
+  BuildContext? get _navigationContext {
+    return appNavigatorKey.currentContext ?? _currentContext;
+  }
+
   void _handleTokenExpired(BuildContext context) {
+    if (_isShowingExpiredDialog) return;
+    _isShowingExpiredDialog = true;
     stopMonitoring();
 
     // Mostrar diálogo informativo
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text('Sesión Expirada'),
         content: Text(
           'Tu sesión ha expirado por seguridad. Por favor, inicia sesión nuevamente.',
@@ -94,8 +106,11 @@ class TokenExpiryManager {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              _logoutAndRedirect(context);
+              final navigationContext = _navigationContext;
+              Navigator.of(dialogContext).pop();
+              if (navigationContext != null) {
+                _logoutAndRedirect(navigationContext);
+              }
             },
             child: Text('Aceptar'),
           ),
@@ -152,6 +167,9 @@ class TokenExpiryManager {
     authProvider.logout();
 
     // Navegar al login
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
   }
 }

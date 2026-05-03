@@ -35,6 +35,7 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
       );
       final localProvider = Provider.of<LocalProvider>(context, listen: false);
 
+      departmentProvider.clearSearch();
       departmentProvider.loadInitialData();
 
       if (!localProvider.hasLoaded) {
@@ -55,7 +56,7 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
         setState(() {});
 
         if (query.isEmpty) {
-          departmentProvider.loadDepartments(forceRefresh: false);
+          departmentProvider.clearSearch();
         } else {
           departmentProvider.searchDepartments(query);
         }
@@ -82,6 +83,9 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
       context: context,
       builder: (context) => DepartmentDialog(
         onSave: (department) async {
+          debugPrint(
+            '[DepartmentsScreen][CREATE] Starting create: ${department.toJson()}',
+          );
           final success = await departmentProvider.createDepartment(
             department.name,
             department.phone,
@@ -94,6 +98,7 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
               isError: true,
             );
           }
+          return success;
         },
         departmentProvider: departmentProvider,
       ),
@@ -131,7 +136,9 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
               isError: true,
             );
           }
+          return success;
         },
+
         departmentProvider: departmentProvider,
       ),
     );
@@ -507,9 +514,7 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
                         onPressed: () {
                           _searchController.clear();
                           setState(() {});
-                          departmentProvider.loadDepartments(
-                            forceRefresh: false,
-                          );
+                          departmentProvider.clearSearch();
                         },
                         tooltip: 'Limpiar búsqueda',
                       )
@@ -978,7 +983,7 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
                 onPressed: () {
                   _searchController.clear();
                   setState(() {});
-                  provider.loadDepartments(forceRefresh: false);
+                  provider.clearSearch();
                 },
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.orange[700],

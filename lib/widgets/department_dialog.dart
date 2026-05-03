@@ -152,7 +152,7 @@ import '../utils/validators.dart';
 
 class DepartmentDialog extends StatefulWidget {
   final Department? department;
-  final Function(Department) onSave;
+  final Future<bool> Function(Department) onSave;
   final DepartmentProvider departmentProvider;
 
   const DepartmentDialog({
@@ -276,22 +276,36 @@ class DepartmentDialogState extends State<DepartmentDialog> {
   }
 
   void _handleSave() async {
-    if (!_formKey.currentState!.validate()) return;
+    final mode = widget.department != null ? 'EDIT' : 'CREATE';
+    debugPrint('[DepartmentDialog][$mode] Save pressed');
+
+    if (!_formKey.currentState!.validate()) {
+      debugPrint('[DepartmentDialog][$mode] Validation failed');
+      return;
+    }
 
     try {
       setState(() => _isSaving = true);
+      debugPrint('[DepartmentDialog][$mode] Validation passed');
 
       final department = Department(
         id: widget.department?.id ?? 0,
         name: _nameController.text.trim(),
         phone: _phoneController.text.trim(),
       );
+      debugPrint(
+        '[DepartmentDialog][$mode] Department built: ${department.toJson()}',
+      );
+      debugPrint(
+        '[DepartmentDialog][$mode] DTO: ${widget.department != null ? department.toUpdateDto() : department.toCreateDto()}',
+      );
 
       // Intentar guardar
-      await widget.onSave(department);
+      final success = await widget.onSave(department);
+      debugPrint('[DepartmentDialog][$mode] onSave returned success=$success');
 
       // Si llega aquí, fue exitoso
-      if (mounted) {
+      if (success && mounted) {
         Navigator.of(context).pop();
 
         DialogErrorHandler.showSuccessSnackbar(
@@ -301,7 +315,11 @@ class DepartmentDialogState extends State<DepartmentDialog> {
               : '✅ Departamento creado exitosamente',
         );
       }
+      if (!success) {
+        debugPrint('[DepartmentDialog][$mode] Save failed, dialog remains open');
+      }
     } catch (e) {
+      debugPrint('[DepartmentDialog][$mode] Exception: $e');
       if (mounted) {
         DialogErrorHandler.showErrorDialog(
           context: context,

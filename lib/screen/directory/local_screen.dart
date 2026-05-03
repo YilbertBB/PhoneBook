@@ -29,6 +29,7 @@ class LocalScreenState extends State<LocalScreen> {
     _searchController.addListener(_onSearchChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final localProvider = Provider.of<LocalProvider>(context, listen: false);
+      localProvider.clearSearch();
       localProvider.loadInitialData();
     });
   }
@@ -45,7 +46,7 @@ class LocalScreenState extends State<LocalScreen> {
         setState(() {});
 
         if (query.isEmpty) {
-          localProvider.loadLocals(forceRefresh: false);
+          localProvider.clearSearch();
         } else {
           localProvider.searchLocals(query);
         }
@@ -457,7 +458,7 @@ class LocalScreenState extends State<LocalScreen> {
                         onPressed: () {
                           _searchController.clear();
                           setState(() {});
-                          localProvider.loadLocals(forceRefresh: false);
+                          localProvider.clearSearch();
                         },
                         tooltip: 'Limpiar búsqueda',
                       )
@@ -900,7 +901,7 @@ class LocalScreenState extends State<LocalScreen> {
                 onPressed: () {
                   _searchController.clear();
                   setState(() {});
-                  provider.loadLocals(forceRefresh: false);
+                  provider.clearSearch();
                 },
                 style: TextButton.styleFrom(foregroundColor: Colors.green[700]),
               ),

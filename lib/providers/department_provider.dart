@@ -11,6 +11,7 @@ class DepartmentProvider with ChangeNotifier {
 
   List<Department> _departments = [];
   final List<DepartmentLite> _departmentLites = [];
+  final List<DepartmentLite> _allDepartmentLites = [];
   bool _loading = false;
   bool _hasLoaded = false;
   String _error = '';
@@ -64,6 +65,7 @@ class DepartmentProvider with ChangeNotifier {
       _currentPage = 0;
       _hasMore = true;
       _departmentLites.clear();
+      _allDepartmentLites.clear();
     }
 
     notifyListeners();
@@ -100,6 +102,9 @@ class DepartmentProvider with ChangeNotifier {
         _departmentLites.addAll(
           _departments.map((dept) => DepartmentLite.fromDepartment(dept)),
         );
+        _allDepartmentLites
+          ..clear()
+          ..addAll(_departmentLites);
 
         // Actualizar estadísticas locales
         _updateLocalStats();
@@ -134,9 +139,15 @@ class DepartmentProvider with ChangeNotifier {
 
       if (_currentPage == 0) {
         _departmentLites.clear();
+        if (_lastSearchQuery.isEmpty) {
+          _allDepartmentLites.clear();
+        }
       }
 
       _departmentLites.addAll(lites);
+      if (_lastSearchQuery.isEmpty) {
+        _allDepartmentLites.addAll(lites);
+      }
       _hasMore = lites.length == _pageSize;
       _currentPage++;
     } catch (e) {
@@ -156,27 +167,55 @@ class DepartmentProvider with ChangeNotifier {
 
   // NUEVO: Buscar departamentos con debounce
   Future<void> searchDepartments(String query) async {
-    _lastSearchQuery = query;
-    _isSearching = query.isNotEmpty;
+    final normalizedQuery = query.trim().toLowerCase();
+    _lastSearchQuery = query.trim();
+    _isSearching = normalizedQuery.isNotEmpty;
 
     // Reiniciar paginación para búsqueda
     _currentPage = 0;
-    _hasMore = true;
-    _departmentLites.clear();
-
-    if (query.isEmpty) {
+    if (normalizedQuery.isEmpty) {
       // Si la búsqueda está vacía, volver a cargar todos
-      await loadDepartments(forceRefresh: false);
+      clearSearch();
       return;
     }
 
+    final departmentLiteSource = _allDepartmentLites.isNotEmpty
+        ? _allDepartmentLites
+        : _departmentLites;
+
+    final departmentResults = _departments.isNotEmpty
+        ? _departments
+              .where(
+                (department) =>
+                    _matchesDepartmentSearch(department, normalizedQuery),
+              )
+              .map((department) => DepartmentLite.fromDepartment(department))
+              .toList()
+        : departmentLiteSource
+              .where(
+                (department) =>
+                    _matchesDepartmentLiteSearch(department, normalizedQuery),
+              )
+              .toList();
+
+    if (_departments.isNotEmpty || departmentLiteSource.isNotEmpty) {
+      _departmentLites
+        ..clear()
+        ..addAll(departmentResults);
+      _hasMore = false;
+      notifyListeners();
+      return;
+    }
+
+    _hasMore = true;
+    _departmentLites.clear();
     _loading = true;
     notifyListeners();
 
     try {
       final results = await _departmentRepository
           .searchDepartmentsLitePaginated(
-            query: query,
+            query: _lastSearchQuery,
             page: _currentPage,
             pageSize: _pageSize,
           );
@@ -193,6 +232,16 @@ class DepartmentProvider with ChangeNotifier {
       _error = 'Error en búsqueda: $e';
       notifyListeners();
     }
+  }
+
+  bool _matchesDepartmentSearch(Department department, String query) {
+    return department.name.toLowerCase().contains(query) ||
+        department.phone.toLowerCase().contains(query);
+  }
+
+  bool _matchesDepartmentLiteSearch(DepartmentLite department, String query) {
+    return department.name.toLowerCase().contains(query) ||
+        department.phone.toLowerCase().contains(query);
   }
 
   // NUEVO: Setup scroll controller para infinite scroll
@@ -417,6 +466,32 @@ class DepartmentProvider with ChangeNotifier {
   // Refrescar datos
   Future<void> refreshDepartments() async {
     await loadDepartments(forceRefresh: true);
+  }
+
+  void clearSearch() {
+    _lastSearchQuery = '';
+    _isSearching = false;
+    _currentPage = 0;
+    _hasMore = _departmentLites.length > _pageSize;
+
+    if (_departments.isNotEmpty) {
+      _departmentLites
+        ..clear()
+        ..addAll(
+          _departments.map((dept) => DepartmentLite.fromDepartment(dept)),
+        );
+      _allDepartmentLites
+        ..clear()
+        ..addAll(_departmentLites);
+      _hasMore = false;
+    } else if (_allDepartmentLites.isNotEmpty) {
+      _departmentLites
+        ..clear()
+        ..addAll(_allDepartmentLites);
+      _hasMore = false;
+    }
+
+    notifyListeners();
   }
 
   // NUEVO: Cargar datos iniciales

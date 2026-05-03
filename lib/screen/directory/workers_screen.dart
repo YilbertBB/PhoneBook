@@ -42,6 +42,7 @@ class WorkersScreenState extends State<WorkersScreen> {
     _scrollController.addListener(_onScroll);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<WorkerProvider>(context, listen: false).clearSearch();
       _loadInitialData();
     });
   }
@@ -155,21 +156,25 @@ class WorkersScreenState extends State<WorkersScreen> {
     );
   }
 
-  Future<void> _handleCreateWorker(
+  Future<bool> _handleCreateWorker(
     Worker worker,
     WorkerProvider provider,
   ) async {
+    debugPrint('[WorkersScreen][CREATE] Starting create: ${worker.toJson()}');
     final success = await provider.createWorker(worker);
+    debugPrint(
+      '[WorkersScreen][CREATE] Finished success=$success error="${provider.error}"',
+    );
 
     if (mounted) {
-      Navigator.of(context).pop();
-
       if (success) {
         _showSnackBar('✅ Trabajador creado exitosamente');
       } else {
         _showSnackBar('❌ Error: ${provider.error}', isError: true);
       }
     }
+
+    return success;
   }
 
   void _showEditWorkerDialog(Worker worker) {
@@ -203,23 +208,27 @@ class WorkersScreenState extends State<WorkersScreen> {
     );
   }
 
-  Future<void> _handleUpdateWorker(
+  Future<bool> _handleUpdateWorker(
     int workerId,
     Worker updatedWorker,
     WorkerProvider provider,
   ) async {
     final worker = updatedWorker.copyWith(id: workerId);
+    debugPrint('[WorkersScreen][EDIT] Starting update: ${worker.toJson()}');
     final success = await provider.updateWorker(worker);
+    debugPrint(
+      '[WorkersScreen][EDIT] Finished success=$success error="${provider.error}"',
+    );
 
     if (mounted) {
-      Navigator.of(context).pop();
-
       if (success) {
         _showSnackBar('✅ Trabajador actualizado exitosamente');
       } else {
         _showSnackBar('❌ Error: ${provider.error}', isError: true);
       }
     }
+
+    return success;
   }
 
   void _showDeleteConfirmation(Worker worker) {

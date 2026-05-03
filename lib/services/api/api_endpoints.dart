@@ -1,5 +1,5 @@
 class ApiEndpoints {
-  static const String baseUrl = 'http://directorio.scu.desoft.cu:85';
+  static const String baseUrl = 'http://directorio.scu.desoft.cu/backend';
 
   // Auth
   static const String login = '/auth/login';

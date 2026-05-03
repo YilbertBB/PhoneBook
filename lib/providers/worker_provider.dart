@@ -289,18 +289,28 @@ class WorkerProvider with ChangeNotifier {
   // ============ CRUD OPERATIONS ============
 
   Future<bool> createWorker(Worker worker) async {
-    if (_loading) return false;
+    debugPrint('[WorkerProvider][CREATE] Requested: ${_workerLog(worker)}');
+
+    if (_loading) {
+      debugPrint('[WorkerProvider][CREATE] Ignored because provider is loading');
+      return false;
+    }
 
     _loading = true;
     _error = '';
     notifyListeners();
+    debugPrint('[WorkerProvider][CREATE] Calling repository');
 
     try {
       final response = await _workerRepository.createWorker(worker);
       _loading = false;
+      debugPrint(
+        '[WorkerProvider][CREATE] Repository response hasError=${response.hasError} status=${response.statusCode} error="${response.error}" technical="${response.technicalError}" data=${response.data != null ? _workerLog(response.data!) : null}',
+      );
 
       if (response.hasError) {
         _error = response.error ?? ErrorMessages.operationFailed;
+        debugPrint('[WorkerProvider][CREATE] Failed: $_error');
         notifyListeners();
         return false;
       } else {
@@ -308,30 +318,44 @@ class WorkerProvider with ChangeNotifier {
         _allWorkersLite.add(WorkerLite.fromWorker(response.data!));
         _applySearchFilter();
         _isOffline = false;
+        debugPrint(
+          '[WorkerProvider][CREATE] Success. totalWorkers=${_allWorkers.length} visible=${visibleWorkers.length}',
+        );
         notifyListeners();
         return true;
       }
     } catch (e) {
       _loading = false;
       _error = ErrorMessages.fromException(e);
+      debugPrint('[WorkerProvider][CREATE] Exception: $e parsedError=$_error');
       notifyListeners();
       return false;
     }
   }
 
   Future<bool> updateWorker(Worker worker) async {
-    if (_loading) return false;
+    debugPrint('[WorkerProvider][EDIT] Requested: ${_workerLog(worker)}');
+
+    if (_loading) {
+      debugPrint('[WorkerProvider][EDIT] Ignored because provider is loading');
+      return false;
+    }
 
     _loading = true;
     _error = '';
     notifyListeners();
+    debugPrint('[WorkerProvider][EDIT] Calling repository');
 
     try {
       final response = await _workerRepository.updateWorker(worker);
       _loading = false;
+      debugPrint(
+        '[WorkerProvider][EDIT] Repository response hasError=${response.hasError} status=${response.statusCode} error="${response.error}" technical="${response.technicalError}" data=${response.data != null ? _workerLog(response.data!) : null}',
+      );
 
       if (response.hasError) {
         _error = response.error ?? ErrorMessages.operationFailed;
+        debugPrint('[WorkerProvider][EDIT] Failed: $_error');
         notifyListeners();
         return false;
       } else {
@@ -340,14 +364,23 @@ class WorkerProvider with ChangeNotifier {
           _allWorkers[index] = response.data!;
           _allWorkersLite[index] = WorkerLite.fromWorker(response.data!);
           _applySearchFilter();
+          debugPrint('[WorkerProvider][EDIT] Updated local index=$index');
+        } else {
+          debugPrint(
+            '[WorkerProvider][EDIT] Warning: worker id=${worker.id} was not found in local list',
+          );
         }
         _isOffline = false;
+        debugPrint(
+          '[WorkerProvider][EDIT] Success. totalWorkers=${_allWorkers.length} visible=${visibleWorkers.length}',
+        );
         notifyListeners();
         return true;
       }
     } catch (e) {
       _loading = false;
       _error = ErrorMessages.fromException(e);
+      debugPrint('[WorkerProvider][EDIT] Exception: $e parsedError=$_error');
       notifyListeners();
       return false;
     }
@@ -446,6 +479,20 @@ class WorkerProvider with ChangeNotifier {
 
   void _showSuccessMessage(String message) {
     debugPrint('Success: $message');
+  }
+
+  String _workerLog(Worker worker) {
+    return {
+      'id': worker.id,
+      'nombre': worker.name,
+      'apellido': worker.lastName,
+      'carnetIdentidad': worker.carnetID,
+      'numeroCelular': worker.phone,
+      'direccion': worker.address,
+      'fechaCumpleanno': worker.fechaCumpleannos,
+      'departamentoId': worker.departamentoID,
+      'localId': worker.localId,
+    }.toString();
   }
 
   // Obtener trabajadores por departamento (paginados)

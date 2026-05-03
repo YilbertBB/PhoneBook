@@ -125,9 +125,12 @@ class WorkerRepository {
   // Crear trabajador (siempre intenta API primero)
   Future<ApiResponse<Worker>> createWorker(Worker worker) async {
     try {
+      debugPrint('[WorkerRepository][CREATE] Start: ${_workerLog(worker)}');
       final hasConnection = await _connectivityManager.hasNetworkConnection();
+      debugPrint('[WorkerRepository][CREATE] hasConnection=$hasConnection');
 
       if (!hasConnection) {
+        debugPrint('[WorkerRepository][CREATE] No connection. Returning error');
         return ApiResponse.error(
           'No hay conexión a internet. No se puede crear el trabajador.',
           technicalError: 'No connection available for create operation',
@@ -135,15 +138,22 @@ class WorkerRepository {
       }
 
       // Crear en API
+      debugPrint('[WorkerRepository][CREATE] Sending to API');
       final apiResponse = await _createWorkerInApi(worker);
+      debugPrint(
+        '[WorkerRepository][CREATE] API response hasError=${apiResponse.hasError} status=${apiResponse.statusCode} error="${apiResponse.error}" technical="${apiResponse.technicalError}" data=${apiResponse.data != null ? _workerLog(apiResponse.data!) : null}',
+      );
 
       if (!apiResponse.hasError && apiResponse.data != null) {
         // Guardar en local si se creó exitosamente
+        debugPrint('[WorkerRepository][CREATE] Saving created worker to local DB');
         await _saveWorkerToLocal(apiResponse.data!);
+        debugPrint('[WorkerRepository][CREATE] Local save completed');
       }
 
       return apiResponse;
     } catch (e) {
+      debugPrint('[WorkerRepository][CREATE] Exception: $e');
       return ApiResponse.fromException(e);
     }
   }
@@ -151,9 +161,12 @@ class WorkerRepository {
   // Actualizar trabajador
   Future<ApiResponse<Worker>> updateWorker(Worker worker) async {
     try {
+      debugPrint('[WorkerRepository][EDIT] Start: ${_workerLog(worker)}');
       final hasConnection = await _connectivityManager.hasNetworkConnection();
+      debugPrint('[WorkerRepository][EDIT] hasConnection=$hasConnection');
 
       if (!hasConnection) {
+        debugPrint('[WorkerRepository][EDIT] No connection. Returning error');
         return ApiResponse.error(
           'No hay conexión a internet. Los cambios se guardarán localmente y se sincronizarán después.',
           technicalError: 'No connection for update, storing locally',
@@ -161,15 +174,22 @@ class WorkerRepository {
       }
 
       // Actualizar en API
+      debugPrint('[WorkerRepository][EDIT] Sending to API');
       final apiResponse = await _updateWorkerInApi(worker);
+      debugPrint(
+        '[WorkerRepository][EDIT] API response hasError=${apiResponse.hasError} status=${apiResponse.statusCode} error="${apiResponse.error}" technical="${apiResponse.technicalError}" data=${apiResponse.data != null ? _workerLog(apiResponse.data!) : null}',
+      );
 
       if (!apiResponse.hasError && apiResponse.data != null) {
         // Actualizar en local
+        debugPrint('[WorkerRepository][EDIT] Saving updated worker to local DB');
         await _saveWorkerToLocal(apiResponse.data!);
+        debugPrint('[WorkerRepository][EDIT] Local save completed');
       }
 
       return apiResponse;
     } catch (e) {
+      debugPrint('[WorkerRepository][EDIT] Exception: $e');
       return ApiResponse.fromException(e);
     }
   }
@@ -429,6 +449,8 @@ class WorkerRepository {
   Future<ApiResponse<Worker>> _createWorkerInApi(Worker worker) async {
     try {
       final dto = worker.toCreateDto();
+      debugPrint('[WorkerRepository][CREATE][API] POST ${ApiEndpoints.workers}');
+      debugPrint('[WorkerRepository][CREATE][API] Body: $dto');
 
       final response = await _apiClient.post<Map<String, dynamic>>(
         ApiEndpoints.workers,
@@ -437,6 +459,9 @@ class WorkerRepository {
       );
 
       if (response.hasError) {
+        debugPrint(
+          '[WorkerRepository][CREATE][API] Error status=${response.statusCode} error="${response.error}" technical="${response.technicalError}"',
+        );
         return ApiResponse.error(
           response.error ?? 'Error al crear trabajador',
           technicalError: response.technicalError,
@@ -445,19 +470,24 @@ class WorkerRepository {
       }
 
       if (response.data == null) {
+        debugPrint('[WorkerRepository][CREATE][API] Empty response data');
         return ApiResponse.error('Error al procesar respuesta del servidor');
       }
 
       try {
+        debugPrint('[WorkerRepository][CREATE][API] Raw response: ${response.data}');
         final newWorker = Worker.fromJson(response.data!);
+        debugPrint('[WorkerRepository][CREATE][API] Parsed worker: ${_workerLog(newWorker)}');
         return ApiResponse.success(newWorker);
       } catch (e) {
+        debugPrint('[WorkerRepository][CREATE][API] Parse exception: $e');
         return ApiResponse.error(
           'Error al procesar trabajador creado',
           technicalError: 'Parse Error: $e',
         );
       }
     } catch (e) {
+      debugPrint('[WorkerRepository][CREATE][API] Exception: $e');
       return ApiResponse.fromException(e);
     }
   }
@@ -465,6 +495,10 @@ class WorkerRepository {
   Future<ApiResponse<Worker>> _updateWorkerInApi(Worker worker) async {
     try {
       final dto = worker.toUpdateDto();
+      debugPrint(
+        '[WorkerRepository][EDIT][API] PUT ${ApiEndpoints.workerById(worker.id)}',
+      );
+      debugPrint('[WorkerRepository][EDIT][API] Body: $dto');
 
       final response = await _apiClient.put<Map<String, dynamic>>(
         ApiEndpoints.workerById(worker.id),
@@ -473,6 +507,9 @@ class WorkerRepository {
       );
 
       if (response.hasError) {
+        debugPrint(
+          '[WorkerRepository][EDIT][API] Error status=${response.statusCode} error="${response.error}" technical="${response.technicalError}"',
+        );
         return ApiResponse.error(
           response.error ?? 'Error al actualizar trabajador',
           technicalError: response.technicalError,
@@ -481,19 +518,26 @@ class WorkerRepository {
       }
 
       if (response.data == null) {
+        debugPrint('[WorkerRepository][EDIT][API] Empty response data');
         return ApiResponse.error('Error al procesar respuesta del servidor');
       }
 
       try {
+        debugPrint('[WorkerRepository][EDIT][API] Raw response: ${response.data}');
         final updatedWorker = Worker.fromJson(response.data!);
+        debugPrint(
+          '[WorkerRepository][EDIT][API] Parsed worker: ${_workerLog(updatedWorker)}',
+        );
         return ApiResponse.success(updatedWorker);
       } catch (e) {
+        debugPrint('[WorkerRepository][EDIT][API] Parse exception: $e');
         return ApiResponse.error(
           'Error al procesar trabajador actualizado',
           technicalError: 'Parse Error: $e',
         );
       }
     } catch (e) {
+      debugPrint('[WorkerRepository][EDIT][API] Exception: $e');
       return ApiResponse.fromException(e);
     }
   }
@@ -863,5 +907,19 @@ class WorkerRepository {
 
     final workers = response.data!.map((lite) => lite.toWorker()).toList();
     return ApiResponse.success(workers);
+  }
+
+  String _workerLog(Worker worker) {
+    return {
+      'id': worker.id,
+      'nombre': worker.name,
+      'apellido': worker.lastName,
+      'carnetIdentidad': worker.carnetID,
+      'numeroCelular': worker.phone,
+      'direccion': worker.address,
+      'fechaCumpleanno': worker.fechaCumpleannos,
+      'departamentoId': worker.departamentoID,
+      'localId': worker.localId,
+    }.toString();
   }
 }

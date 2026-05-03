@@ -4,10 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'generated/l10n.dart';
+import 'navigation/app_navigator.dart';
 import 'providers/update_provider.dart';
 import 'screen/directory/home_screen.dart';
 import 'screen/directory/onboarding_screen.dart';
-import 'services/auth/token_expiry_manager.dart';
 import 'services/notification_handler.dart';
 import 'services/service_locator.dart';
 import 'providers/auth_provider.dart';
@@ -43,6 +43,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => UpdateProvider()),
       ],
       child: MaterialApp(
+        navigatorKey: appNavigatorKey,
         title: 'Directorio Telefónico',
         theme: ThemeData(
           primarySwatch: Colors.blue,
@@ -90,8 +91,7 @@ class MyApp extends StatelessWidget {
 
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (authProvider.isAuthenticated) {
-                    final tokenExpiryManager = TokenExpiryManager();
-                    tokenExpiryManager.startMonitoring(context);
+                    ServiceLocator().tokenExpiryManager.startMonitoring(context);
 
                     // ========== AGREGAR VERIFICACIÓN DE ACTUALIZACIONES ==========
                     // Esperar un poco para que la app termine de cargar

@@ -10,6 +10,7 @@ class LocalProvider with ChangeNotifier {
 
   List<Local> _locals = [];
   final List<LocalLite> _localLites = []; // NUEVO
+  final List<LocalLite> _allLocalLites = [];
   bool _loading = false;
   bool _hasLoaded = false;
   String _error = '';
@@ -63,6 +64,7 @@ class LocalProvider with ChangeNotifier {
       _currentPage = 0;
       _hasMore = true;
       _localLites.clear();
+      _allLocalLites.clear();
     }
 
     notifyListeners();
@@ -97,6 +99,9 @@ class LocalProvider with ChangeNotifier {
         // Convertir a modelos lite para lista
         _localLites.clear();
         _localLites.addAll(_locals.map((local) => LocalLite.fromLocal(local)));
+        _allLocalLites
+          ..clear()
+          ..addAll(_localLites);
 
         // Actualizar estadísticas locales
         _updateLocalStats();
@@ -130,9 +135,15 @@ class LocalProvider with ChangeNotifier {
 
       if (_currentPage == 0) {
         _localLites.clear();
+        if (_lastSearchQuery.isEmpty) {
+          _allLocalLites.clear();
+        }
       }
 
       _localLites.addAll(lites);
+      if (_lastSearchQuery.isEmpty) {
+        _allLocalLites.addAll(lites);
+      }
       _hasMore = lites.length == _pageSize;
       _currentPage++;
     } catch (e) {
@@ -152,26 +163,48 @@ class LocalProvider with ChangeNotifier {
 
   // NUEVO: Buscar locales con debounce
   Future<void> searchLocals(String query) async {
-    _lastSearchQuery = query;
-    _isSearching = query.isNotEmpty;
+    final normalizedQuery = query.trim().toLowerCase();
+    _lastSearchQuery = query.trim();
+    _isSearching = normalizedQuery.isNotEmpty;
 
     // Reiniciar paginación para búsqueda
     _currentPage = 0;
-    _hasMore = true;
-    _localLites.clear();
-
-    if (query.isEmpty) {
+    if (normalizedQuery.isEmpty) {
       // Si la búsqueda está vacía, volver a cargar todos
-      await loadLocals(forceRefresh: false);
+      clearSearch();
       return;
     }
 
+    final localLiteSource = _allLocalLites.isNotEmpty
+        ? _allLocalLites
+        : _localLites;
+
+    final localResults = _locals.isNotEmpty
+        ? _locals
+              .where((local) => _matchesLocalSearch(local, normalizedQuery))
+              .map((local) => LocalLite.fromLocal(local))
+              .toList()
+        : localLiteSource
+              .where((local) => _matchesLocalLiteSearch(local, normalizedQuery))
+              .toList();
+
+    if (_locals.isNotEmpty || localLiteSource.isNotEmpty) {
+      _localLites
+        ..clear()
+        ..addAll(localResults);
+      _hasMore = false;
+      notifyListeners();
+      return;
+    }
+
+    _hasMore = true;
+    _localLites.clear();
     _loading = true;
     notifyListeners();
 
     try {
       final results = await _localRepository.searchLocalsLitePaginated(
-        query: query,
+        query: _lastSearchQuery,
         page: _currentPage,
         pageSize: _pageSize,
       );
@@ -188,6 +221,16 @@ class LocalProvider with ChangeNotifier {
       _error = 'Error en búsqueda: $e';
       notifyListeners();
     }
+  }
+
+  bool _matchesLocalSearch(Local local, String query) {
+    return local.name.toLowerCase().contains(query) ||
+        local.phone.toLowerCase().contains(query);
+  }
+
+  bool _matchesLocalLiteSearch(LocalLite local, String query) {
+    return local.name.toLowerCase().contains(query) ||
+        local.phone.toLowerCase().contains(query);
   }
 
   // NUEVO: Setup scroll controller para infinite scroll
@@ -408,6 +451,30 @@ class LocalProvider with ChangeNotifier {
   // Refrescar datos
   Future<void> refreshLocals() async {
     await loadLocals(forceRefresh: true);
+  }
+
+  void clearSearch() {
+    _lastSearchQuery = '';
+    _isSearching = false;
+    _currentPage = 0;
+    _hasMore = _localLites.length > _pageSize;
+
+    if (_locals.isNotEmpty) {
+      _localLites
+        ..clear()
+        ..addAll(_locals.map((local) => LocalLite.fromLocal(local)));
+      _allLocalLites
+        ..clear()
+        ..addAll(_localLites);
+      _hasMore = false;
+    } else if (_allLocalLites.isNotEmpty) {
+      _localLites
+        ..clear()
+        ..addAll(_allLocalLites);
+      _hasMore = false;
+    }
+
+    notifyListeners();
   }
 
   // NUEVO: Cargar datos iniciales
