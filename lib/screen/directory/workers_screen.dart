@@ -3,8 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../../models/department.dart';
-import '../../models/local.dart';
 import '../../models/worker.dart';
 import '../../models/worker_lite.dart';
 import '../../providers/auth_provider.dart';
