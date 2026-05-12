@@ -1205,6 +1205,46 @@ class ConfigScreenState extends State<ConfigScreen> {
                       ),
                     ),
                   ),
+                  SizedBox(height: 40),
+                  Center(
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Color.fromARGB(255, 0, 106, 152),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            Icons.near_me,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'v1.0.0',
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 1,
+                            color: Color(0xFF444650),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Directorio Telefónico © 2025',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF444650),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 10),
                 ],
               ),
             ),

@@ -1,7 +1,7 @@
 class UpdateConfig {
   // URL del archivo JSON que contiene la información de actualización
   static const String updateJsonUrl =
-      'https://yilbertbb.github.io/phonebook-updates/app-update.json';
+      'http://ftp.scu.desoft.cu/files/PhoneBook/';
 
   // Tiempo en horas entre verificaciones automáticas
   static const int checkIntervalHours = 24;
