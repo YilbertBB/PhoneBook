@@ -1593,11 +1593,13 @@ class LocalScreenState extends State<LocalScreen> {
                               children: [
                                 Icon(Icons.preview, size: 16, color: Colors.green[700]),
                                 const SizedBox(width: 8),
-                                Text(
-                                  'Previsualización (${_previewData.length} registros)',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green[700],
+                                Expanded(
+                                  child: Text(
+                                    'Previsualización (${_previewData.length} registros)',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green[700],
+                                    ),
                                   ),
                                 ),
                               ],

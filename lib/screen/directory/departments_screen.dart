@@ -1693,11 +1693,13 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
                               children: [
                                 Icon(Icons.preview, size: 16, color: Colors.orange[700]),
                                 const SizedBox(width: 8),
-                                Text(
-                                  'Previsualización (${_previewData.length} registros)',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.orange[700],
+                                Expanded(
+                                  child: Text(
+                                    'Previsualización (${_previewData.length} registros)',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.orange[700],
+                                    ),
                                   ),
                                 ),
                               ],
