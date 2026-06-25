@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:excel/excel.dart';
+import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 
 class ExcelImportService {
   static Future<List<List<dynamic>>> readRowsFromFile(String filePath) async {
@@ -10,24 +10,17 @@ class ExcelImportService {
     }
 
     final bytes = await file.readAsBytes();
-    final excel = Excel.decodeBytes(bytes);
+    final decoder = SpreadsheetDecoder.decodeBytes(bytes, update: false);
 
-    final sheetName = excel.tables.keys.firstOrNull ?? '';
-    final sheet = excel.tables[sheetName];
-
-    if (sheet == null) {
+    if (decoder.tables.isEmpty) {
       throw Exception('No se encontró una hoja válida en el archivo.');
     }
 
+    final table = decoder.tables.values.first;
     final rows = <List<dynamic>>[];
-    for (var rowIndex = 0; rowIndex < sheet.maxRows; rowIndex++) {
-      final row = sheet.row(rowIndex);
-      final values = <dynamic>[];
-      for (var colIndex = 0; colIndex < row.length; colIndex++) {
-        final value = row[colIndex]?.value;
-        values.add(value ?? '');
-      }
-      rows.add(values);
+
+    for (final row in table.rows) {
+      rows.add(row.map((value) => value ?? '').toList());
     }
 
     return rows;
@@ -173,8 +166,4 @@ class ExcelImportService {
 
     return normalized;
   }
-}
-
-extension FirstOrNullExtension<T> on Iterable<T> {
-  T? get firstOrNull => isEmpty ? null : first;
 }

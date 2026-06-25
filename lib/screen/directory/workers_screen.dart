@@ -1954,7 +1954,12 @@ class WorkersScreenState extends State<WorkersScreen> {
   // ============ MÉTODOS DE UI ============
 
   void _showSnackBar(String message, {bool isError = false}) {
-    _scaffoldMessengerKey.currentState?.showSnackBar(
+    if (!mounted) return;
+
+    final messenger = _scaffoldMessengerKey.currentState;
+    if (messenger == null) return;
+
+    messenger.showSnackBar(
       SnackBar(
         content: Row(
           children: [
@@ -1973,6 +1978,12 @@ class WorkersScreenState extends State<WorkersScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
+  }
+
+  void _safeDialogSetState(StateSetter setState, VoidCallback update) {
+    try {
+      setState(update);
+    } catch (_) {}
   }
 
   // ============ MÉTODOS DE AGREGAR TRABAJADORES ============
@@ -2285,11 +2296,13 @@ class WorkersScreenState extends State<WorkersScreen> {
                               children: [
                                 Icon(Icons.preview, size: 16, color: Colors.blue[700]),
                                 const SizedBox(width: 8),
-                                Text(
-                                  'Previsualización (${_previewData.length} registros)',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue[700],
+                                Expanded(
+                                  child: Text(
+                                    'Previsualización (${_previewData.length} registros)',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue[700],
+                                    ),
                                   ),
                                 ),
                               ],
@@ -2360,7 +2373,7 @@ class WorkersScreenState extends State<WorkersScreen> {
       );
 
       if (result != null) {
-        setState(() {
+        _safeDialogSetState(setState, () {
           _selectedExcelFilePath = result.files.single.path;
           _previewData = [];
         });
@@ -2394,12 +2407,12 @@ class WorkersScreenState extends State<WorkersScreen> {
         throw Exception('No se encontraron registros válidos en el archivo.');
       }
 
-      setState(() {
+      _safeDialogSetState(setState, () {
         _previewData = parsedRows;
       });
     } catch (e) {
       _showSnackBar('Error al leer el archivo: $e', isError: true);
-      setState(() {
+      _safeDialogSetState(setState, () {
         _selectedExcelFilePath = null;
         _previewData = [];
       });
@@ -2413,7 +2426,7 @@ class WorkersScreenState extends State<WorkersScreen> {
       return;
     }
 
-    setState(() {
+    _safeDialogSetState(setState, () {
       _isProcessingExcel = true;
     });
 
@@ -2504,7 +2517,9 @@ class WorkersScreenState extends State<WorkersScreen> {
       }
 
       if (!mounted) return;
-      Navigator.pop(context);
+      if (Navigator.of(context).canPop()) {
+        Navigator.pop(context);
+      }
 
       if (successCount > 0) {
         _showSnackBar(
@@ -2519,14 +2534,14 @@ class WorkersScreenState extends State<WorkersScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      Navigator.pop(context);
+      if (Navigator.of(context).canPop()) {
+        Navigator.pop(context);
+      }
       _showSnackBar('❌ Error al importar: ${e.toString()}', isError: true);
     } finally {
-      if (mounted) {
-        setState(() {
-          _isProcessingExcel = false;
-        });
-      }
+      _safeDialogSetState(setState, () {
+        _isProcessingExcel = false;
+      });
     }
   }
 
@@ -2683,7 +2698,7 @@ class WorkersScreenState extends State<WorkersScreen> {
           children: [
             Icon(Icons.warning, color: Colors.orange[700]),
             const SizedBox(width: 8),
-            const Text('Eliminar Trabajador'),
+            Expanded(child: const Text('Eliminar Trabajador')),
           ],
         ),
         content: Column(
@@ -3238,8 +3253,8 @@ class WorkersScreenState extends State<WorkersScreen> {
             const SizedBox(height: 24),
             if (isAdmin && _searchController.text.isEmpty)
               ElevatedButton.icon(
-                icon: const Icon(Icons.add),
-                label: const Text('Agregar Primer Trabajador'),
+                icon: const Icon(Icons.add,color: Colors.white),
+                label: const Text('Agregar Primer Trabajador',style: TextStyle(color: Colors.white)),
                 onPressed: _showAddWorkerOptions,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue[700],

@@ -1694,15 +1694,19 @@ class LocalScreenState extends State<LocalScreen> {
         throw Exception('No se encontraron registros válidos en el archivo.');
       }
 
-      setState(() {
-        _previewData = parsedRows;
-      });
+      if (mounted) {
+        setState(() {
+          _previewData = parsedRows;
+        });
+      }
     } catch (e) {
       _showSnackBar('Error al leer el archivo: $e', isError: true);
-      setState(() {
-        _selectedExcelFilePath = null;
-        _previewData = [];
-      });
+      if (mounted) {
+        setState(() {
+          _selectedExcelFilePath = null;
+          _previewData = [];
+        });
+      }
     }
   }
 
@@ -1713,9 +1717,11 @@ class LocalScreenState extends State<LocalScreen> {
       return;
     }
 
-    setState(() {
-      _isProcessingExcel = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isProcessingExcel = true;
+      });
+    }
 
     try {
       final localProvider = Provider.of<LocalProvider>(context, listen: false);
@@ -2593,8 +2599,8 @@ class LocalScreenState extends State<LocalScreen> {
 
                 if (isAdmin && _searchController.text.isEmpty) {
                   return ElevatedButton.icon(
-                    icon: const Icon(Icons.add),
-                    label: const Text('Agregar Primer Local'),
+                    icon: const Icon(Icons.add,color: Colors.white),
+                    label: const Text('Agregar Primer Local',style: TextStyle(color: Colors.white)),
                     onPressed: _showAddLocalOptions,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green[700],

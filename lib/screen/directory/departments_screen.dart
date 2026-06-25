@@ -1310,7 +1310,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -1795,15 +1794,19 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
         throw Exception('No se encontraron registros válidos en el archivo.');
       }
 
-      setState(() {
-        _previewData = parsedRows;
-      });
+      if (mounted) {
+        setState(() {
+          _previewData = parsedRows;
+        });
+      }
     } catch (e) {
       _showSnackBar('Error al leer el archivo: $e', isError: true);
-      setState(() {
-        _selectedExcelFilePath = null;
-        _previewData = [];
-      });
+      if (mounted) {
+        setState(() {
+          _selectedExcelFilePath = null;
+          _previewData = [];
+        });
+      }
     }
   }
 
@@ -1814,9 +1817,11 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
       return;
     }
 
-    setState(() {
-      _isProcessingExcel = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isProcessingExcel = true;
+      });
+    }
 
     try {
       final departmentProvider = Provider.of<DepartmentProvider>(
@@ -2769,8 +2774,8 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
 
                 if (isAdmin && _searchController.text.isEmpty) {
                   return ElevatedButton.icon(
-                    icon: const Icon(Icons.add),
-                    label: const Text('Agregar Primer Departamento'),
+                    icon: const Icon(Icons.add,color: Colors.white),
+                    label:  Text('Agregar Primer Departamento',style: TextStyle(color: Colors.white),),
                     onPressed: _showAddDepartmentOptions,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange[700],
