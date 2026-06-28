@@ -93,15 +93,22 @@ class LocalProvider with ChangeNotifier {
         }
       } else {
         _locals = response.data ?? [];
+
+        _locals.sort(
+  (a, b) => a.name.toLowerCase().compareTo(
+    b.name.toLowerCase(),
+  ),
+);
+
         _hasLoaded = true;
         _isOffline = false;
 
         // Convertir a modelos lite para lista
         _localLites.clear();
         _localLites.addAll(_locals.map((local) => LocalLite.fromLocal(local)));
-        _allLocalLites
-          ..clear()
-          ..addAll(_localLites);
+        // _allLocalLites
+        //   ..clear()
+        //   ..addAll(_localLites);
 
         // Actualizar estadísticas locales
         _updateLocalStats();
