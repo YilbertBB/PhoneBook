@@ -11,43 +11,50 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class OnboardingScreenState extends State<OnboardingScreen> {
+  static const Color _primary = Color(0xFF1769AA);
+  static const Color _primaryDark = Color(0xFF104C80);
+  static const Color _background = Color(0xFFF4F7FB);
+  static const Color _textDark = Color(0xFF243447);
+  static const Color _textMuted = Color(0xFF718096);
+  static const Color _border = Color(0xFFE4EAF2);
+
   final PageController _pageController = PageController();
+
   int _currentPage = 0;
 
-  // Slider data
   final List<OnboardingPage> _pages = [
     OnboardingPage(
       title: '¡Bienvenido al Directorio Telefónico Desoft!',
       description:
           'Accede rápidamente a la información de contacto '
           'de todos los trabajadores de Desoft.',
-      image: Icons.contacts,
-      color: Colors.blue,
+      image: Icons.contacts_rounded,
+      color: _primary,
     ),
     OnboardingPage(
       title: 'Consulta sin límites',
       description:
           'Puedes buscar trabajadores, departamentos y locales '
           'sin necesidad de iniciar sesión.',
-      image: Icons.search,
-      color: Colors.green,
+      image: Icons.search_rounded,
+      color: _primary,
     ),
     OnboardingPage(
       title: 'Modo Administrador',
       description:
           'Inicia sesión con credenciales de administrador '
           'para agregar, editar o eliminar información.',
-      image: Icons.admin_panel_settings,
-      color: Colors.red,
+      image: Icons.admin_panel_settings_rounded,
+      color: _primary,
     ),
     OnboardingPage(
       title: 'Configuración de Red Corporativa',
       description:
           'Importante: Para el correcto funcionamiento, '
-          'primero debe poseer una linea coorporativa '
-          'y ademas configura el APN "desoft" en tu dispositivo.',
-      image: Icons.settings_cell,
-      color: Colors.purple,
+          'debes disponer de una línea corporativa y configurar '
+          'el APN "desoft" en tu dispositivo.',
+      image: Icons.settings_cell_rounded,
+      color: _primary,
     ),
     OnboardingPage(
       title: 'Funcionalidades Especiales',
@@ -56,35 +63,88 @@ class OnboardingScreenState extends State<OnboardingScreen> {
           '• Llamadas directas desde la app\n'
           '• Copiar números de contacto\n'
           '• Acceso rápido a información',
-      image: Icons.star,
-      color: Colors.orange,
+      image: Icons.stars_rounded,
+      color: _primary,
     ),
   ];
 
   @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isLastPage = _currentPage == _pages.length - 1;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _background,
       body: SafeArea(
         child: Column(
           children: [
-            // Skip button (solo mostrar si no es la última página)
-            if (_currentPage < _pages.length - 1)
-              Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: TextButton(
-                    onPressed: _completeOnboarding,
-                    child: const Text(
-                      'Saltar',
-                      style: TextStyle(color: Colors.grey, fontSize: 16),
+            // BARRA SUPERIOR
+            SizedBox(
+              height: 58,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [_primary, _primaryDark],
+                            ),
+                            borderRadius: BorderRadius.circular(9),
+                          ),
+                          child: const Icon(
+                            Icons.near_me_rounded,
+                            color: Colors.white,
+                            size: 19,
+                          ),
+                        ),
+                        const SizedBox(width: 9),
+                        const Text(
+                          'DESOFT',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.2,
+                            color: _textDark,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                    const Spacer(),
+                    if (!isLastPage)
+                      TextButton(
+                        onPressed: _completeOnboarding,
+                        style: TextButton.styleFrom(
+                          foregroundColor: _textMuted,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                        ),
+                        child: const Text(
+                          'Saltar',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
+            ),
 
-            // PageView
+            // CONTENIDO DE LAS PÁGINAS
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -100,77 +160,135 @@ class OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
 
-            // Indicator y botones
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                children: [
-                  // Page indicator
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      _pages.length,
-                      (index) => _buildIndicator(index),
-                    ),
+            // INDICADORES Y BOTONES
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(24, 15, 24, 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: const Border(top: BorderSide(color: _border)),
+                boxShadow: [
+                  BoxShadow(
+                    color: _textDark.withValues(alpha: 0.035),
+                    blurRadius: 12,
+                    offset: const Offset(0, -4),
                   ),
-
-                  const SizedBox(height: 32),
-
-                  // Next/Get Started button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_currentPage < _pages.length - 1) {
-                          _pageController.nextPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        } else {
-                          _completeOnboarding();
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _pages[_currentPage].color,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 32,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 2,
-                      ),
-                      child: Text(
-                        _currentPage < _pages.length - 1
-                            ? 'Siguiente'
-                            : '¡Comenzar!',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Back button (solo mostrar si no es la primera página)
-                  if (_currentPage > 0) ...[
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: () {
-                        _pageController.previousPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      },
-                      child: const Text(
-                        'Atrás',
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
-                      ),
-                    ),
-                  ],
                 ],
+              ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 520),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // PROGRESO
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '${_currentPage + 1}',
+                            style: const TextStyle(
+                              color: _primary,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const Text(
+                            ' / ',
+                            style: TextStyle(color: _textMuted, fontSize: 12),
+                          ),
+                          Text(
+                            '${_pages.length}',
+                            style: const TextStyle(
+                              color: _textMuted,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // INDICADORES
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          _pages.length,
+                          (index) => _buildIndicator(index),
+                        ),
+                      ),
+
+                      const SizedBox(height: 22),
+
+                      // BOTÓN PRINCIPAL
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (!isLastPage) {
+                              _pageController.nextPage(
+                                duration: const Duration(milliseconds: 350),
+                                curve: Curves.easeInOutCubic,
+                              );
+                            } else {
+                              _completeOnboarding();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _primary,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                isLastPage ? '¡Comenzar!' : 'Siguiente',
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(width: 9),
+                              Icon(
+                                isLastPage
+                                    ? Icons.check_circle_outline_rounded
+                                    : Icons.arrow_forward_rounded,
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // BOTÓN ATRÁS
+                      if (_currentPage > 0) ...[
+                        const SizedBox(height: 8),
+                        TextButton.icon(
+                          onPressed: () {
+                            _pageController.previousPage(
+                              duration: const Duration(milliseconds: 350),
+                              curve: Curves.easeInOutCubic,
+                            );
+                          },
+                          icon: const Icon(Icons.arrow_back_rounded, size: 16),
+                          label: const Text('Atrás'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: _textMuted,
+                            textStyle: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
             ),
           ],
@@ -179,68 +297,125 @@ class OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
+  // CONTENIDO DE CADA DIAPOSITIVA
   Widget _buildPage(OnboardingPage page) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 600;
+
+        final iconSize = (constraints.maxWidth * 0.23).clamp(85.0, 155.0);
+
+        final titleSize = (constraints.maxWidth * 0.055).clamp(21.0, 32.0);
+
+        final descriptionSize = (constraints.maxWidth * 0.034).clamp(
+          14.0,
+          18.0,
+        );
+
         return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: IntrinsicHeight(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 40),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 650),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Icono
+                    // ICONO PRINCIPAL
                     Container(
-                      width: constraints.maxWidth * 0.3,
-                      height: constraints.maxWidth * 0.3,
+                      width: iconSize,
+                      height: iconSize,
                       decoration: BoxDecoration(
-                        color: page.color.withValues(alpha: 0.1),
+                        gradient: LinearGradient(
+                          colors: [
+                            _primary.withValues(alpha: 0.12),
+                            _primary.withValues(alpha: 0.04),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                         shape: BoxShape.circle,
+                        border: Border.all(
+                          color: _primary.withValues(alpha: 0.12),
+                          width: 1.5,
+                        ),
                       ),
-                      child: Icon(
-                        page.image,
-                        size: constraints.maxWidth * 0.15,
-                        color: page.color,
+                      child: Center(
+                        child: Icon(
+                          page.image,
+                          size: iconSize * 0.48,
+                          color: _primary,
+                        ),
                       ),
                     ),
 
-                    SizedBox(height: constraints.maxHeight * 0.05),
+                    SizedBox(height: isWide ? 35 : 28),
 
-                    // Título
+                    // ETIQUETA
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 13,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'DIRECTORIO TELEFÓNICO DESOFT',
+                        style: TextStyle(
+                          color: _primary,
+                          fontSize: isWide ? 11 : 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 17),
+
+                    // TÍTULO
                     Text(
                       page.title,
                       style: TextStyle(
-                        fontSize: constraints.maxWidth * 0.06,
-                        fontWeight: FontWeight.bold,
-                        color: page.color,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                    ),
-
-                    SizedBox(height: constraints.maxHeight * 0.03),
-
-                    // Descripción
-                    Text(
-                      page.description,
-                      style: TextStyle(
-                        fontSize: constraints.maxWidth * 0.04,
-                        color: Colors.grey,
-                        height: 1.4,
+                        fontSize: titleSize,
+                        fontWeight: FontWeight.w900,
+                        color: _textDark,
+                        height: 1.2,
+                        letterSpacing: -0.5,
                       ),
                       textAlign: TextAlign.center,
                     ),
 
-                    // Configuración APN (solo si es necesario)
-                    if (page.image == Icons.settings_cell) ...[
-                      SizedBox(height: constraints.maxHeight * 0.03),
+                    const SizedBox(height: 16),
+
+                    // DESCRIPCIÓN
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(
+                        page.description,
+                        style: TextStyle(
+                          fontSize: descriptionSize,
+                          color: _textMuted,
+                          height: 1.65,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+
+                    // CONFIGURACIÓN APN
+                    if (page.image == Icons.settings_cell_rounded) ...[
+                      const SizedBox(height: 26),
                       _buildResponsiveAPNConfig(constraints),
                     ],
 
-                    // Espacio flexible
-                    const Spacer(),
+                    if (page.image == Icons.stars_rounded) ...[
+                      const SizedBox(height: 24),
+                      _buildFeaturesPreview(),
+                    ],
                   ],
                 ),
               ),
@@ -251,93 +426,103 @@ class OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
+  // CONFIGURACIÓN APN
   Widget _buildResponsiveAPNConfig(BoxConstraints constraints) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(constraints.maxWidth * 0.04),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.purple[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.purple[100]!),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(color: _border),
+        boxShadow: [
+          BoxShadow(
+            color: _textDark.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Configuración APN:',
-            style: TextStyle(
-              fontSize: constraints.maxWidth * 0.045,
-              fontWeight: FontWeight.bold,
-              color: Colors.purple,
-            ),
+          const Row(
+            children: [
+              Icon(Icons.settings_ethernet_rounded, color: _primary, size: 21),
+              SizedBox(width: 9),
+              Text(
+                'Configuración APN',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: _textDark,
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: constraints.maxHeight * 0.02),
+          const SizedBox(height: 15),
+          LayoutBuilder(
+            builder: (context, boxConstraints) {
+              final columns = boxConstraints.maxWidth >= 400 ? 2 : 1;
+              final itemWidth = columns == 2
+                  ? (boxConstraints.maxWidth - 10) / 2
+                  : boxConstraints.maxWidth;
 
-          // Usar column o grid según el tamaño
-          if (constraints.maxWidth < 400)
-            _buildVerticalConfig()
-          else
-            _buildGridConfig(),
+              return Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  SizedBox(
+                    width: itemWidth,
+                    child: _buildConfigBox('Nombre', 'Desoft'),
+                  ),
+                  SizedBox(
+                    width: itemWidth,
+                    child: _buildConfigBox('APN', 'desoft'),
+                  ),
+                  SizedBox(
+                    width: itemWidth,
+                    child: _buildConfigBox('Usuario', 'desoft'),
+                  ),
+                  SizedBox(
+                    width: itemWidth,
+                    child: _buildConfigBox('Contraseña', 'desoft'),
+                  ),
+                ],
+              );
+            },
+          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildVerticalConfig() {
-    return Column(
-      children: [
-        _buildConfigRow('Nombre:', 'Desoft'),
-        _buildConfigRow('APN:', 'desoft'),
-        _buildConfigRow('Usuario:', 'desoft'),
-        _buildConfigRow('Contraseña:', 'desoft'),
-      ],
-    );
-  }
-
-  Widget _buildGridConfig() {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      childAspectRatio: 3,
-      mainAxisSpacing: 8,
-      crossAxisSpacing: 8,
-      children: [
-        _buildConfigBox('Nombre', 'Desoft'),
-        _buildConfigBox('APN', 'desoft'),
-        _buildConfigBox('Usuario', 'desoft'),
-        _buildConfigBox('Contraseña', 'desoft'),
-      ],
     );
   }
 
   Widget _buildConfigBox(String label, String value) {
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.purple[200]!),
+        color: const Color(0xFFF4F8FC),
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(color: _border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             label,
             style: const TextStyle(
-              fontSize: 12,
-              color: Colors.grey,
-              fontWeight: FontWeight.bold,
+              fontSize: 11,
+              color: _textMuted,
+              fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 5),
           Text(
             value,
             style: const TextStyle(
               fontSize: 14,
-              color: Colors.purple,
-              fontWeight: FontWeight.w500,
+              color: _primaryDark,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],
@@ -345,48 +530,87 @@ class OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildConfigRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Text(
-            '$label ',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.purple,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // FUNCIONALIDADES ESPECIALES
+  Widget _buildFeaturesPreview() {
+    final features = [
+      (Icons.cake_outlined, 'Cumpleaños y efemérides'),
+      (Icons.call_outlined, 'Llamadas directas'),
+      (Icons.copy_rounded, 'Copiar contactos'),
+      (Icons.flash_on_rounded, 'Acceso rápido'),
+    ];
 
-  Widget _buildIndicator(int index) {
     return Container(
-      width: _currentPage == index ? 30 : 8,
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _border),
+      ),
+      child: Column(
+        children: features.map((feature) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 9),
+            child: Row(
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: _primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(feature.$1, color: _primary, size: 18),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    feature.$2,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: _textDark,
+                    ),
+                  ),
+                ),
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: _primary,
+                  size: 18,
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // INDICADORES
+  Widget _buildIndicator(int index) {
+    final isActive = _currentPage == index;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+      width: isActive ? 29 : 8,
       height: 8,
       margin: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
-        color: _currentPage == index ? _pages[index].color : Colors.grey[300],
-        borderRadius: BorderRadius.circular(4),
+        color: isActive ? _primary : const Color(0xFFDCE3EC),
+        borderRadius: BorderRadius.circular(10),
       ),
     );
   }
 
+  // FINALIZAR ONBOARDING
   Future<void> _completeOnboarding() async {
-    // Guardar en SharedPreferences que ya vio el onboarding
     final prefs = await SharedPreferences.getInstance();
+
     await prefs.setBool('has_seen_onboarding', true);
 
-    // Llamar al callback para continuar
+    if (!mounted) return;
+
     widget.onComplete();
   }
 }
@@ -397,7 +621,7 @@ class OnboardingPage {
   final IconData image;
   final Color color;
 
-  OnboardingPage({
+  const OnboardingPage({
     required this.title,
     required this.description,
     required this.image,

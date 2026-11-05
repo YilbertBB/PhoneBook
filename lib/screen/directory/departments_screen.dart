@@ -34,7 +34,15 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
   List<Map<String, dynamic>> _previewData = [];
   bool _isProcessingExcel = false;
 
-  // bool _isDeleting = false;
+  static const Color _primary = Color(0xFF1769AA);
+  static const Color _primaryDark = Color(0xFF104C80);
+  static const Color _background = Color(0xFFF4F7FB);
+  static const Color _surface = Colors.white;
+  static const Color _textDark = Color(0xFF243447);
+  static const Color _textMuted = Color(0xFF718096);
+  static const Color _success = Color(0xFF159B72);
+  static const Color _warning = Color(0xFFE49A27);
+  static const Color _danger = Color(0xFFD94B4B);
 
   @override
   void initState() {
@@ -84,11 +92,15 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
 
     return FloatingActionButton.extended(
       onPressed: _showAddDepartmentOptions,
-      icon: const Icon(Icons.add, color: Colors.white),
-      label: const Text('Agregar', style: TextStyle(color: Colors.white)),
-      backgroundColor: Colors.orange[700],
+      backgroundColor: _primary,
+      foregroundColor: Colors.white,
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+      icon: const Icon(Icons.add),
+      label: const Text(
+        'Agregar departamento',
+        style: TextStyle(fontWeight: FontWeight.w600),
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     );
   }
 
@@ -177,25 +189,29 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
   }) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      color: _surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: const BorderSide(color: Color(0xFFE5EAF0)),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(15),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Container(
-                width: 50,
-                height: 50,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: color.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(13),
                 ),
-                child: Icon(icon, color: color, size: 28),
+                child: Icon(icon, color: color, size: 25),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,20 +219,20 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
                     Text(
                       title,
                       style: const TextStyle(
-                        fontSize: 16,
+                        color: _textDark,
+                        fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 5),
                     Text(
                       subtitle,
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                      style: const TextStyle(color: _textMuted, fontSize: 12),
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: Colors.grey[400]),
+              const Icon(Icons.chevron_right_rounded, color: _textMuted),
             ],
           ),
         ),
@@ -876,29 +892,51 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
     return ScaffoldMessenger(
       key: _scaffoldMessengerKey,
       child: Scaffold(
+        backgroundColor: _background,
         appBar: AppBar(
-          title: const Text(
-            'Departamentos',
-            style: TextStyle(color: Colors.white, fontSize: 20),
-          ),
-          backgroundColor: Colors.orange[700],
+          backgroundColor: _primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+            icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
+            tooltip: 'Volver',
+          ),
+          title: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Departamentos',
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                'Directorio de departamentos',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white70,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+            ],
           ),
           actions: [
-            // Botón de sincronización offline
             Consumer<DepartmentProvider>(
               builder: (context, provider, child) {
                 if (provider.syncing) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Center(
+                      child: SizedBox(
+                        width: 21,
+                        height: 21,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   );
@@ -906,57 +944,268 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
 
                 return IconButton(
                   icon: Icon(
-                    provider.isOffline ? Icons.cloud_off : Icons.cloud_done,
+                    provider.isOffline
+                        ? Icons.cloud_off_rounded
+                        : Icons.cloud_done_rounded,
                     color: provider.isOffline
-                        ? Colors.orange[100]
+                        ? Colors.orange.shade200
                         : Colors.white,
-                    size: 24,
                   ),
-                  onPressed: provider.isOffline
-                      ? () => _syncDepartments(departmentProvider)
-                      : null,
                   tooltip: provider.isOffline
-                      ? 'Modo offline - Toque para sincronizar'
+                      ? 'Modo offline - Sincronizar'
                       : 'En línea',
+                  onPressed: provider.isOffline
+                      ? () => _syncDepartments(provider)
+                      : null,
                 );
               },
             ),
-
             IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.white, size: 24),
+              icon: const Icon(Icons.refresh_rounded),
+              tooltip: 'Actualizar',
               onPressed: () {
                 departmentProvider.loadDepartments(forceRefresh: true);
-                _showSnackBar('🔄 Actualizando lista...');
+                _showSnackBar('Actualizando lista...');
               },
-              tooltip: 'Actualizar',
             ),
+            const SizedBox(width: 6),
           ],
         ),
-        // body: _buildBody(departmentProvider, localProvider, isAdmin),
         body: Stack(
           children: [
             _buildBody(departmentProvider, localProvider, isAdmin),
-            if (departmentProvider.loading && departmentProvider.hasLoaded) ...[
-              const ModalBarrier(dismissible: false, color: Colors.black54),
-              const Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(color: Colors.orange),
-                    SizedBox(height: 16),
-                    Text(
-                      "🔄 Actualizando lista...",
-                      style: TextStyle(color: Colors.white, fontSize: 16),
+            if (departmentProvider.loading && departmentProvider.hasLoaded)
+              Container(
+                color: Colors.black.withValues(alpha: 0.35),
+                child: const Center(
+                  child: Card(
+                    elevation: 8,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 28,
+                        vertical: 24,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(color: _primary),
+                          SizedBox(height: 16),
+                          Text(
+                            'Actualizando departamentos...',
+                            style: TextStyle(
+                              color: _textDark,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ],
           ],
         ),
         floatingActionButton: _buildFloatingActionButton(isAdmin),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       ),
+    );
+  }
+
+  Widget _buildDepartmentsHeader(DepartmentProvider provider, bool isWide) {
+    final total = provider.isSearching
+        ? provider.departmentLites.length
+        : provider.isOffline
+        ? provider.localDataCount
+        : provider.totalDepartments;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [_primary, _primaryDark],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: _primary.withValues(alpha: 0.18),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.business_rounded,
+              color: Colors.white,
+              size: 29,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Gestión de departamentos',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  provider.isOffline
+                      ? 'Trabajando con información local'
+                      : 'Consulta y administra los departamentos',
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          if (isWide) ...[
+            const SizedBox(width: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    '$total',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 23,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Text(
+                    'Departamentos',
+                    style: TextStyle(color: Colors.white70, fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDepartmentSearch() {
+    return Container(
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: const Color(0xFFE5EAF0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ValueListenableBuilder<TextEditingValue>(
+        valueListenable: _searchController,
+        builder: (context, value, child) {
+          return TextField(
+            controller: _searchController,
+            textInputAction: TextInputAction.search,
+            decoration: InputDecoration(
+              hintText: 'Buscar por nombre o teléfono...',
+              hintStyle: const TextStyle(color: _textMuted, fontSize: 14),
+              prefixIcon: const Icon(Icons.search_rounded, color: _primary),
+              suffixIcon: value.text.isNotEmpty
+                  ? IconButton(
+                      onPressed: () {
+                        _searchController.clear();
+                        Provider.of<DepartmentProvider>(
+                          context,
+                          listen: false,
+                        ).clearSearch();
+                      },
+                      icon: const Icon(Icons.close_rounded),
+                      color: _textMuted,
+                      tooltip: 'Limpiar búsqueda',
+                    )
+                  : null,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 18,
+                vertical: 17,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDepartmentsCounter(
+    DepartmentProvider provider,
+    int visibleCount,
+  ) {
+    final total = provider.isSearching
+        ? visibleCount
+        : provider.isOffline
+        ? provider.localDataCount
+        : provider.totalDepartments;
+
+    return Row(
+      children: [
+        const Icon(Icons.business_outlined, size: 18, color: _primary),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            provider.isSearching
+                ? '$visibleCount resultados encontrados'
+                : '$total departamentos registrados',
+            style: const TextStyle(
+              color: _textDark,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        if (provider.isOffline)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF5E5),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFF3D7A5)),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.cloud_off_rounded, size: 13, color: _warning),
+                SizedBox(width: 5),
+                Text(
+                  'Offline',
+                  style: TextStyle(
+                    color: _warning,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
@@ -966,15 +1215,15 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
     bool isAdmin,
   ) {
     if (departmentProvider.loading && !departmentProvider.hasLoaded) {
-      return Center(
+      return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(color: Colors.orange[700]),
-            const SizedBox(height: 16),
+            CircularProgressIndicator(color: _primary),
+            SizedBox(height: 16),
             Text(
               'Cargando departamentos...',
-              style: TextStyle(color: Colors.grey[600]),
+              style: TextStyle(color: _textMuted),
             ),
           ],
         ),
@@ -982,255 +1231,121 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
     }
 
     if (departmentProvider.hasError && !departmentProvider.hasLoaded) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              departmentProvider.isOffline
-                  ? Icons.cloud_off
-                  : Icons.error_outline,
-              size: 64,
-              color: departmentProvider.isOffline ? Colors.orange : Colors.red,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              departmentProvider.isOffline
-                  ? 'Modo offline'
-                  : 'Error al cargar departamentos',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Text(
-                departmentProvider.isOffline && departmentProvider.hasLocalData
-                    ? 'Mostrando ${departmentProvider.localDataCount} departamentos almacenados localmente.'
-                    : departmentProvider.error,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            if (departmentProvider.isOffline && departmentProvider.hasLocalData)
-              Column(
-                children: [
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.cloud_upload, color: Colors.white),
-                    label: const Text(
-                      'Sincronizar ahora',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    onPressed: () => _syncDepartments(departmentProvider),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange[700],
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: () => departmentProvider.loadDepartments(),
-                    child: const Text('Continuar en modo offline'),
-                  ),
-                ],
-              )
-            else
-              ElevatedButton.icon(
-                icon: const Icon(Icons.refresh, color: Colors.white),
-                label: const Text(
-                  'Reintentar',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onPressed: () => departmentProvider.loadDepartments(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange[700],
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      );
+      return _buildDepartmentErrorState(departmentProvider);
     }
 
     final lites = departmentProvider.departmentLites;
 
-    return Column(
-      children: [
-        // Barra de búsqueda optimizada
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(30),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 800;
+        final horizontalPadding = isWide ? 32.0 : 16.0;
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1250),
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    horizontalPadding,
+                    22,
+                    horizontalPadding,
+                    12,
+                  ),
+                  child: _buildDepartmentsHeader(departmentProvider, isWide),
+                ),
+
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: horizontalPadding,
+                    vertical: 8,
+                  ),
+                  child: _buildDepartmentSearch(),
+                ),
+
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    horizontalPadding,
+                    8,
+                    horizontalPadding,
+                    12,
+                  ),
+                  child: _buildDepartmentsCounter(
+                    departmentProvider,
+                    lites.length,
+                  ),
+                ),
+
+                Expanded(
+                  child: RefreshIndicator(
+                    color: _primary,
+                    onRefresh: () async {
+                      await departmentProvider.loadDepartments(
+                        forceRefresh: true,
+                      );
+                      _showSnackBar('Lista actualizada');
+                    },
+                    child: lites.isEmpty && !departmentProvider.isLoadingMore
+                        ? _buildEmptyState(isAdmin, departmentProvider)
+                        : ListView.builder(
+                            controller: departmentProvider.scrollController,
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: EdgeInsets.fromLTRB(
+                              horizontalPadding,
+                              4,
+                              horizontalPadding,
+                              110,
+                            ),
+                            itemCount:
+                                lites.length +
+                                (departmentProvider.hasMore ? 1 : 0),
+                            itemBuilder: (context, index) {
+                              if (index >= lites.length) {
+                                return _buildLoadingIndicator(
+                                  departmentProvider,
+                                );
+                              }
+
+                              return _buildDepartmentCard(
+                                lites[index],
+                                localProvider,
+                                isAdmin,
+                              );
+                            },
+                          ),
+                  ),
                 ),
               ],
             ),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Buscar por nombre o teléfono...',
-                prefixIcon: const Icon(Icons.search, color: Colors.orange),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(Icons.close, color: Colors.grey[600]),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {});
-                          departmentProvider.clearSearch();
-                        },
-                        tooltip: 'Limpiar búsqueda',
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
-                ),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-            ),
           ),
-        ),
-
-        const SizedBox(height: 12),
-
-        // Contador y estadísticas optimizado
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.work, size: 16, color: Colors.orange[700]),
-                  const SizedBox(width: 6),
-                  Consumer<DepartmentProvider>(
-                    builder: (context, provider, child) {
-                      final totalCount = provider.isSearching
-                          ? lites.length
-                          : (provider.isOffline
-                                ? provider.localDataCount
-                                : provider.totalDepartments);
-
-                      return Text(
-                        '$totalCount departamentos${provider.isOffline ? ' (offline)' : ''}',
-                        style: TextStyle(
-                          color: provider.isOffline
-                              ? Colors.orange[700]
-                              : Colors.grey[700],
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-
-              Consumer<DepartmentProvider>(
-                builder: (context, provider, child) {
-                  if (provider.isOffline) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.orange[50],
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.orange[200]!),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.cloud_off,
-                            size: 12,
-                            color: Colors.orange[700],
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Offline',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.orange[700],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  return const SizedBox.shrink();
-                },
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
-        // Lista de departamentos
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () async {
-              await departmentProvider.loadDepartments(forceRefresh: true);
-              _showSnackBar('✅ Lista actualizada');
-            },
-            color: Colors.orange[700],
-            child: lites.isEmpty && !departmentProvider.isLoadingMore
-                ? _buildEmptyState(isAdmin, departmentProvider)
-                : ListView.builder(
-                    controller: departmentProvider.scrollController,
-                    padding: const EdgeInsets.all(16),
-                    itemCount:
-                        lites.length + (departmentProvider.hasMore ? 1 : 0),
-                    itemExtent: 96,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    itemBuilder: (context, index) {
-                      if (index >= lites.length) {
-                        return _buildLoadingIndicator(departmentProvider);
-                      }
-
-                      final departmentLite = lites[index];
-                      return _buildDepartmentCard(
-                        departmentLite,
-                        localProvider,
-                        isAdmin,
-                      );
-                    },
-                  ),
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 
   Widget _buildLoadingIndicator(DepartmentProvider provider) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 24),
       child: Center(
         child: provider.isLoadingMore
-            ? CircularProgressIndicator(color: Colors.orange[700])
+            ? const Column(
+                children: [
+                  SizedBox(
+                    width: 25,
+                    height: 25,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: _primary,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Cargando más departamentos...',
+                    style: TextStyle(color: _textMuted, fontSize: 12),
+                  ),
+                ],
+              )
             : const SizedBox.shrink(),
       ),
     );
@@ -1241,133 +1356,168 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
     LocalProvider localProvider,
     bool isAdmin,
   ) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: () => _loadAndShowDepartmentDetails(
-          departmentLite.id,
-          localProvider,
-          isAdmin,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.orange[100],
-                  shape: BoxShape.circle,
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE8EDF3)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 9,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: () => _loadAndShowDepartmentDetails(
+            departmentLite.id,
+            localProvider,
+            isAdmin,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+            child: Row(
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: _primary.withValues(alpha: 0.09),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    departmentLite.initials,
+                    style: const TextStyle(
+                      color: _primary,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-                child: Center(
+                const SizedBox(width: 15),
+                Expanded(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        departmentLite.initials,
-                        style: TextStyle(
-                          color: Colors.orange[700],
-                          fontSize: 14,
+                        departmentLite.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: _textDark,
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                      const SizedBox(height: 7),
+                      if (departmentLite.hasPhone)
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.phone_outlined,
+                              size: 15,
+                              color: _success,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                departmentLite.phone,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: _textMuted,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      else
+                        const Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              size: 14,
+                              color: _textMuted,
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'Sin teléfono registrado',
+                              style: TextStyle(color: _textMuted, fontSize: 12),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
-              ),
-
-              const SizedBox(width: 16),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      departmentLite.name,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.grey[800],
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                if (isAdmin)
+                  PopupMenuButton<String>(
+                    tooltip: 'Opciones',
+                    icon: const Icon(
+                      Icons.more_vert_rounded,
+                      color: _textMuted,
                     ),
-                    const SizedBox(height: 4),
-                    if (departmentLite.hasPhone)
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.phone,
-                            size: 14,
-                            color: Colors.orange[600],
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            departmentLite.phone,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.orange[600],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    itemBuilder: (context) => const [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.edit_outlined,
+                              color: _primary,
+                              size: 19,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+                            SizedBox(width: 10),
+                            Text('Editar'),
+                          ],
+                        ),
                       ),
-                  ],
-                ),
-              ),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.delete_outline,
+                              color: _danger,
+                              size: 19,
+                            ),
+                            SizedBox(width: 10),
+                            Text('Eliminar'),
+                          ],
+                        ),
+                      ),
+                    ],
+                    onSelected: (value) async {
+                      final department = await _loadDepartmentById(
+                        departmentLite.id,
+                      );
 
-              if (isAdmin)
-                PopupMenuButton<String>(
-                  icon: Icon(
-                    Icons.more_vert,
-                    color: Colors.orange[700],
-                    size: 20,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  itemBuilder: (context) => [
-                    const PopupMenuItem<String>(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, color: Colors.blue, size: 18),
-                          SizedBox(width: 8),
-                          Text('Editar'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, color: Colors.red, size: 18),
-                          SizedBox(width: 8),
-                          Text('Eliminar'),
-                        ],
-                      ),
-                    ),
-                  ],
-                  onSelected: (value) async {
-                    final department = await _loadDepartmentById(
-                      departmentLite.id,
-                    );
-                    if (department != null) {
+                      if (!mounted || department == null) return;
+
                       if (value == 'edit') {
                         _showEditDepartmentDialog(department);
                       } else if (value == 'delete') {
                         _showDeleteConfirmation(department);
                       }
-                    }
-                  },
-                ),
-            ],
+                    },
+                  )
+                else
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: Color(0xFFADB8C5),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1394,176 +1544,178 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
   }
 
   Widget _buildEmptyState(bool isAdmin, DepartmentProvider provider) {
+    final isSearching = _searchController.text.trim().isNotEmpty;
+    final isOffline = provider.isOffline;
+
+    final icon = isOffline
+        ? Icons.cloud_off_rounded
+        : isSearching
+        ? Icons.search_off_rounded
+        : Icons.business_outlined;
+
+    final title = isSearching
+        ? 'No se encontraron resultados'
+        : isOffline
+        ? 'No hay datos locales'
+        : 'No hay departamentos registrados';
+
+    final description = isSearching
+        ? 'No encontramos coincidencias con "${_searchController.text}". Prueba con otro nombre o teléfono.'
+        : isOffline
+        ? 'Conéctate a internet para cargar los departamentos.'
+        : 'Cuando agregues departamentos aparecerán aquí.';
+
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(28),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 430),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 112,
+                height: 112,
+                decoration: BoxDecoration(
+                  color: _primary.withValues(alpha: 0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  size: 52,
+                  color: _primary.withValues(alpha: 0.65),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.bold,
+                  color: _textDark,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                description,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  height: 1.5,
+                  color: _textMuted,
+                ),
+              ),
+              const SizedBox(height: 25),
+              if (isOffline && !isSearching)
+                ElevatedButton.icon(
+                  onPressed: () => _syncDepartments(provider),
+                  icon: const Icon(Icons.cloud_sync_rounded),
+                  label: const Text('Sincronizar ahora'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 22,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                )
+              else if (isAdmin && !isSearching)
+                ElevatedButton.icon(
+                  onPressed: _showAddDepartmentOptions,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Agregar departamento'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 22,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              if (isSearching)
+                TextButton.icon(
+                  onPressed: () {
+                    _searchController.clear();
+                    provider.clearSearch();
+                  },
+                  icon: const Icon(Icons.close),
+                  label: const Text('Limpiar búsqueda'),
+                  style: TextButton.styleFrom(foregroundColor: _primary),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDepartmentErrorState(DepartmentProvider provider) {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(28),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Consumer<DepartmentProvider>(
-              builder: (context, provider, child) {
-                return Column(
-                  children: [
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: provider.isOffline
-                            ? Colors.orange[50]
-                            : Colors.orange[50],
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        provider.isOffline
-                            ? Icons.cloud_off
-                            : _searchController.text.isEmpty
-                            ? Icons.work_outline
-                            : Icons.search_off,
-                        size: 60,
-                        color: provider.isOffline
-                            ? Colors.orange[300]
-                            : Colors.orange[300],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    if (provider.isOffline)
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.orange[50],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.orange[200]!),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.info,
-                              color: Colors.orange[700],
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Modo offline',
-                              style: TextStyle(color: Colors.orange[700]),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                );
-              },
+            Icon(
+              provider.isOffline
+                  ? Icons.cloud_off_rounded
+                  : Icons.error_outline_rounded,
+              size: 64,
+              color: _warning,
             ),
-
+            const SizedBox(height: 18),
+            Text(
+              provider.isOffline
+                  ? 'Sin conexión disponible'
+                  : 'No se pudieron cargar los departamentos',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.bold,
+                color: _textDark,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              provider.isOffline && provider.hasLocalData
+                  ? 'Hay ${provider.localDataCount} departamentos almacenados localmente.'
+                  : provider.error,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: _textMuted, fontSize: 14),
+            ),
             const SizedBox(height: 24),
-
-            Consumer<DepartmentProvider>(
-              builder: (context, provider, child) {
-                return Column(
-                  children: [
-                    Text(
-                      _searchController.text.isEmpty
-                          ? provider.isOffline
-                                ? 'No hay datos locales de departamentos'
-                                : 'No hay departamentos registrados'
-                          : 'No se encontraron resultados',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[700],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: Text(
-                        _searchController.text.isEmpty
-                            ? provider.isOffline
-                                  ? 'Conéctate a internet para cargar los departamentos.'
-                                  : ''
-                            : 'No encontramos coincidencias con "${_searchController.text}". Intenta con otros términos.',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-
-            const SizedBox(height: 24),
-
-            Consumer<DepartmentProvider>(
-              builder: (context, provider, child) {
-                if (provider.isOffline && _searchController.text.isEmpty) {
-                  return Column(
-                    children: [
-                      ElevatedButton.icon(
-                        icon: const Icon(
-                          Icons.cloud_download,
-                          color: Colors.white,
-                        ),
-                        label: const Text('Sincronizar desde internet'),
-                        onPressed: () => _syncDepartments(provider),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange[700],
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 14,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'O verifica tu conexión a internet',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                      ),
-                    ],
-                  );
-                }
-
-                if (isAdmin && _searchController.text.isEmpty) {
-                  return ElevatedButton.icon(
-                    icon: const Icon(Icons.add, color: Colors.white),
-                    label: Text(
-                      'Agregar Primer Departamento',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    onPressed: _showAddDepartmentOptions,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange[700],
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 14,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  );
-                }
-
-                return const SizedBox.shrink();
-              },
-            ),
-
-            if (_searchController.text.isNotEmpty)
-              TextButton.icon(
-                icon: const Icon(Icons.clear_all),
-                label: const Text('Limpiar búsqueda'),
-                onPressed: () {
-                  _searchController.clear();
-                  setState(() {});
-                  provider.clearSearch();
-                },
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.orange[700],
+            if (provider.isOffline && provider.hasLocalData) ...[
+              ElevatedButton.icon(
+                onPressed: () => _syncDepartments(provider),
+                icon: const Icon(Icons.cloud_sync),
+                label: const Text('Sincronizar ahora'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primary,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+              TextButton(
+                onPressed: () => provider.loadDepartments(),
+                child: const Text('Continuar en modo offline'),
+              ),
+            ] else
+              ElevatedButton.icon(
+                onPressed: () => provider.loadDepartments(),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Reintentar'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primary,
+                  foregroundColor: Colors.white,
                 ),
               ),
           ],

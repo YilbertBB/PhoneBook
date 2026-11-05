@@ -41,6 +41,17 @@ class WorkersScreenState extends State<WorkersScreen> {
   List<Map<String, dynamic>> _previewData = [];
   bool _isProcessingExcel = false;
 
+  // ============ ESTILO VISUAL ============
+  static const Color _primary = Color(0xFF1769AA);
+  static const Color _primaryDark = Color(0xFF104C80);
+  static const Color _background = Color(0xFFF4F7FB);
+  static const Color _surface = Colors.white;
+  static const Color _textDark = Color(0xFF243447);
+  static const Color _textMuted = Color(0xFF718096);
+  static const Color _success = Color(0xFF159B72);
+  static const Color _warning = Color(0xFFE49A27);
+  static const Color _danger = Color(0xFFD94B4B);
+
   @override
   void initState() {
     super.initState();
@@ -157,11 +168,15 @@ class WorkersScreenState extends State<WorkersScreen> {
 
     return FloatingActionButton.extended(
       onPressed: _showAddWorkerOptions,
-      icon: const Icon(Icons.add, color: Colors.white),
-      label: const Text('Agregar', style: TextStyle(color: Colors.white)),
-      backgroundColor: Colors.blue[700],
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+      backgroundColor: _primary,
+      foregroundColor: Colors.white,
+      elevation: 5,
+      icon: const Icon(Icons.person_add_alt_1_rounded),
+      label: const Text(
+        'Agregar trabajador',
+        style: TextStyle(fontWeight: FontWeight.w600),
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     );
   }
 
@@ -1489,60 +1504,82 @@ class WorkersScreenState extends State<WorkersScreen> {
   }
 
   Widget _buildWorkerCardLite(WorkerLite worker, bool isAdmin) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.only(bottom: 8),
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: () => _showWorkerDetailsFromLite(worker, isAdmin),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         child: Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFE8EDF4)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.025),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
           child: Row(
             children: [
-              CircleAvatar(
-                backgroundColor: Colors.blue[100],
-                radius: 20,
+              // Avatar
+              Container(
+                width: 47,
+                height: 47,
+                decoration: BoxDecoration(
+                  color: _primary.withValues(alpha: 0.09),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                alignment: Alignment.center,
                 child: Text(
                   worker.initials,
-                  style: TextStyle(
-                    color: Colors.blue[700],
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                  style: const TextStyle(
+                    color: _primary,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+
+              const SizedBox(width: 13),
+
+              // Información
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       worker.fullName,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: Colors.grey[800],
-                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _textDark,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     if (worker.hasPhone) ...[
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 6),
                       Row(
                         children: [
-                          Icon(Icons.phone, size: 12, color: Colors.blue[600]),
-                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.phone_outlined,
+                            size: 13,
+                            color: _primary,
+                          ),
+                          const SizedBox(width: 5),
                           Expanded(
                             child: Text(
                               worker.phone,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.blue[600],
-                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: _textMuted,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                         ],
@@ -1551,16 +1588,22 @@ class WorkersScreenState extends State<WorkersScreen> {
                   ],
                 ),
               ),
+
+              const SizedBox(width: 8),
+
+              // Acciones
               if (isAdmin)
                 IconButton(
-                  icon: Icon(
-                    Icons.more_vert,
-                    size: 20,
-                    color: Colors.blue[700],
-                  ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
                   onPressed: () => _showActionMenuFromLite(worker, isAdmin),
+                  icon: const Icon(Icons.more_vert_rounded, color: _textMuted),
+                  tooltip: 'Acciones',
+                  visualDensity: VisualDensity.compact,
+                )
+              else
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Color(0xFFABB6C5),
+                  size: 23,
                 ),
             ],
           ),
@@ -1927,28 +1970,51 @@ class WorkersScreenState extends State<WorkersScreen> {
     return ScaffoldMessenger(
       key: _scaffoldMessengerKey,
       child: Scaffold(
+        backgroundColor: _background,
         appBar: AppBar(
-          title: const Text(
-            'Trabajadores',
-            style: TextStyle(color: Colors.white, fontSize: 20),
-          ),
-          backgroundColor: Colors.blue[700],
+          elevation: 0,
+          backgroundColor: _primary,
+          foregroundColor: Colors.white,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+            icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
+            tooltip: 'Volver',
+          ),
+          title: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Trabajadores',
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                'Directorio de personal',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.white70,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+            ],
           ),
           actions: [
             Consumer<WorkerProvider>(
               builder: (context, provider, child) {
                 if (provider.syncing) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Center(
+                      child: SizedBox(
+                        width: 21,
+                        height: 21,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   );
@@ -1957,47 +2023,55 @@ class WorkersScreenState extends State<WorkersScreen> {
                 return IconButton(
                   icon: Icon(
                     provider.isOffline ? Icons.cloud_off : Icons.cloud_done,
-                    color: provider.isOffline ? Colors.orange : Colors.white,
-                    size: 24,
+                    color: provider.isOffline
+                        ? const Color(0xFFFFC66D)
+                        : Colors.white,
                   ),
+                  tooltip: provider.isOffline
+                      ? 'Modo offline - Sincronizar'
+                      : 'Conectado',
                   onPressed: provider.isOffline
                       ? () => _syncWorkers(provider)
                       : null,
-                  tooltip: provider.isOffline
-                      ? 'Modo offline - Toque para sincronizar'
-                      : 'En línea',
                 );
               },
             ),
-
             IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.white, size: 24),
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Actualizar trabajadores',
               onPressed: () {
                 workerProvider.loadWorkers(forceRefresh: true);
-                _showSnackBar('🔄 Actualizando lista...');
+                _showSnackBar('Actualizando lista...');
               },
-              tooltip: 'Actualizar',
             ),
+            const SizedBox(width: 6),
           ],
         ),
-        // body: _buildBody(workerProvider, isAdmin),
         body: Stack(
           children: [
             _buildBody(workerProvider, isAdmin),
-
             if (workerProvider.loading && workerProvider.hasLoaded) ...[
-              const ModalBarrier(dismissible: false, color: Colors.black54),
+              const ModalBarrier(dismissible: false, color: Color(0x66000000)),
               const Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(color: Colors.blue),
-                    SizedBox(height: 16),
-                    Text(
-                      "🔄 Actualizando lista...",
-                      style: TextStyle(color: Colors.white, fontSize: 16),
+                child: Card(
+                  elevation: 8,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 28, vertical: 22),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(color: _primary),
+                        SizedBox(height: 16),
+                        Text(
+                          'Actualizando lista...',
+                          style: TextStyle(
+                            color: _textDark,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ],
@@ -2020,220 +2094,432 @@ class WorkersScreenState extends State<WorkersScreen> {
 
     final visibleWorkers = workerProvider.visibleWorkers;
 
-    return Column(
-      children: [
-        // Barra de búsqueda
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(30),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Buscar por nombre, carnet o teléfono...',
-                prefixIcon: const Icon(Icons.search, color: Colors.blue),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(Icons.close, color: Colors.grey[600]),
-                        onPressed: () {
-                          _searchController.clear();
-                          Provider.of<WorkerProvider>(
-                            context,
-                            listen: false,
-                          ).clearSearch();
-                        },
-                        tooltip: 'Limpiar búsqueda',
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
-                ),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-            ),
-          ),
-        ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 900;
 
-        Consumer<DepartmentProvider>(
-          builder: (context, departmentProvider, _) {
-            return _buildDepartmentFilter(departmentProvider);
-          },
-        ),
-
-        // Contador optimizado
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+        return Container(
+          color: _background,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1250),
+              child: Column(
                 children: [
-                  Icon(Icons.people, size: 16, color: Colors.blue[700]),
-                  const SizedBox(width: 6),
-                  Consumer<WorkerProvider>(
-                    builder: (context, provider, child) {
-                      return Text(
-                        '${visibleWorkers.length} de ${provider.totalWorkers}${provider.isOffline ? ' (offline)' : ''}',
-                        style: TextStyle(
-                          color: provider.isOffline
-                              ? Colors.orange[700]
-                              : Colors.grey[700],
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                  // Encabezado de la sección
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      isWide ? 28 : 18,
+                      22,
+                      isWide ? 28 : 18,
+                      16,
+                    ),
+                    child: _buildWorkersHeader(
+                      workerProvider,
+                      isAdmin,
+                      visibleWorkers.length,
+                    ),
+                  ),
+
+                  // Buscador
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: isWide ? 28 : 18),
+                    child: _buildSearchField(),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // Filtros por departamento
+                  Consumer<DepartmentProvider>(
+                    builder: (context, departmentProvider, _) {
+                      return Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isWide ? 28 : 18,
                         ),
+                        child: _buildDepartmentFilter(departmentProvider),
                       );
                     },
                   ),
+
+                  const SizedBox(height: 14),
+
+                  // Contador y estado
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: isWide ? 28 : 18),
+                    child: _buildWorkersCounter(
+                      workerProvider,
+                      visibleWorkers.length,
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Listado
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: () async {
+                        await workerProvider.refreshWorkers();
+                        _showSnackBar('Lista actualizada');
+                      },
+                      color: _primary,
+                      child: visibleWorkers.isEmpty
+                          ? _buildEmptyState(isAdmin, workerProvider)
+                          : ListView.builder(
+                              controller: _scrollController,
+                              padding: EdgeInsets.fromLTRB(
+                                isWide ? 28 : 18,
+                                6,
+                                isWide ? 28 : 18,
+                                100,
+                              ),
+                              itemCount:
+                                  visibleWorkers.length +
+                                  (workerProvider.hasMore ? 1 : 0),
+                              itemBuilder: (context, index) {
+                                if (index >= visibleWorkers.length) {
+                                  return _buildLoadMoreIndicator(
+                                    workerProvider,
+                                  );
+                                }
+
+                                final worker = visibleWorkers[index];
+
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: _buildWorkerCardLite(worker, isAdmin),
+                                );
+                              },
+                            ),
+                    ),
+                  ),
                 ],
               ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
-              Consumer<WorkerProvider>(
-                builder: (context, provider, child) {
-                  if (provider.isOffline) {
-                    return _buildStatusBadge('Offline', Colors.orange);
-                  }
-                  if (_searchController.text.isNotEmpty) {
-                    return _buildStatusBadge('Búsqueda activa', Colors.blue);
-                  }
-                  if (provider.hasMore) {
-                    return _buildStatusBadge('Más disponible', Colors.green);
-                  }
-                  return const SizedBox.shrink();
-                },
+  Widget _buildWorkersHeader(
+    WorkerProvider provider,
+    bool isAdmin,
+    int visibleCount,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [_primary, _primaryDark],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: _primary.withValues(alpha: 0.18),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 420;
+
+          return Row(
+            children: [
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: const Icon(
+                  Icons.groups_rounded,
+                  color: Colors.white,
+                  size: 29,
+                ),
               ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        // Lista con paginación
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () async {
-              await workerProvider.refreshWorkers();
-              _showSnackBar('✅ Lista actualizada');
-            },
-            color: Colors.blue[700],
-            child: visibleWorkers.isEmpty
-                ? _buildEmptyState(isAdmin, workerProvider)
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(16),
-                    itemCount:
-                        visibleWorkers.length +
-                        (workerProvider.hasMore ? 1 : 0),
-                    itemExtent: 80,
-                    itemBuilder: (context, index) {
-                      if (index >= visibleWorkers.length) {
-                        return _buildLoadMoreIndicator(workerProvider);
-                      }
-
-                      final workerLite = visibleWorkers[index];
-                      return _buildWorkerCardLite(workerLite, isAdmin);
-                    },
+              const SizedBox(width: 15),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Gestión de personal',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      provider.isOffline
+                          ? 'Consulta de datos almacenados localmente'
+                          : 'Consulta y administra el directorio de trabajadores',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              if (!compact) ...[
+                const SizedBox(width: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 9,
                   ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        '$visibleCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Text(
+                        'Visibles',
+                        style: TextStyle(color: Colors.white70, fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSearchField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE5EAF1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ValueListenableBuilder<TextEditingValue>(
+        valueListenable: _searchController,
+        builder: (context, value, _) {
+          return TextField(
+            controller: _searchController,
+            textInputAction: TextInputAction.search,
+            decoration: InputDecoration(
+              hintText: 'Buscar por nombre, carnet o teléfono...',
+              hintStyle: const TextStyle(color: _textMuted, fontSize: 13),
+              prefixIcon: const Icon(
+                Icons.search_rounded,
+                color: _primary,
+                size: 23,
+              ),
+              suffixIcon: value.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.close_rounded, color: _textMuted),
+                      onPressed: () {
+                        _searchController.clear();
+                        Provider.of<WorkerProvider>(
+                          context,
+                          listen: false,
+                        ).clearSearch();
+                      },
+                    )
+                  : null,
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 17,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildWorkersCounter(WorkerProvider provider, int visibleCount) {
+    String statusText = '';
+    Color statusColor = _success;
+    IconData statusIcon = Icons.check_circle_outline;
+
+    if (provider.isOffline) {
+      statusText = 'Sin conexión';
+      statusColor = _warning;
+      statusIcon = Icons.cloud_off;
+    } else if (_searchController.text.isNotEmpty) {
+      statusText = 'Búsqueda activa';
+      statusColor = _primary;
+      statusIcon = Icons.search;
+    } else if (provider.hasMore) {
+      statusText = 'Más disponibles';
+      statusColor = _success;
+      statusIcon = Icons.more_horiz;
+    }
+
+    return Row(
+      children: [
+        const Icon(Icons.people_alt_outlined, color: _primary, size: 19),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            '$visibleCount de ${provider.totalWorkers} trabajadores',
+            style: const TextStyle(
+              color: _textDark,
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+            ),
           ),
         ),
+        if (statusText.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.09),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: statusColor.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(statusIcon, color: statusColor, size: 13),
+                const SizedBox(width: 5),
+                Text(
+                  statusText,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
 
   Widget _buildDepartmentFilter(DepartmentProvider departmentProvider) {
     final departments = departmentProvider.departments;
-    if (departments.isEmpty) return const SizedBox.shrink();
 
-    return SizedBox(
-      height: 50,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: FilterChip(
-                label: const Text('Todos'),
+    if (departments.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(bottom: 9),
+          child: Row(
+            children: [
+              Icon(Icons.filter_list_rounded, size: 17, color: _textMuted),
+              SizedBox(width: 7),
+              Text(
+                'Filtrar por departamento',
+                style: TextStyle(
+                  color: _textDark,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 39,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              _buildDepartmentChip(
+                label: 'Todos',
                 selected: _selectedDepartmentId == null,
-                onSelected: (_) {
+                onSelected: () {
                   setState(() => _selectedDepartmentId = null);
                   Provider.of<WorkerProvider>(
                     context,
                     listen: false,
                   ).filterByDepartment(null);
                 },
-                selectedColor: Colors.blue[100],
-                checkmarkColor: Colors.blue[700],
-                labelStyle: TextStyle(
-                  color: _selectedDepartmentId == null
-                      ? Colors.blue[700]
-                      : Colors.grey[700],
-                  fontWeight: _selectedDepartmentId == null
-                      ? FontWeight.bold
-                      : FontWeight.normal,
-                ),
-                backgroundColor: Colors.grey[100],
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(
-                    color: _selectedDepartmentId == null
-                        ? Colors.blue[700]!
-                        : Colors.transparent,
-                  ),
-                ),
               ),
-            ),
-            ...departments.map((dept) {
-              final isSelected = _selectedDepartmentId == dept.id;
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: FilterChip(
-                  label: Text(dept.name),
+              ...departments.map((dept) {
+                final isSelected = _selectedDepartmentId == dept.id;
+
+                return _buildDepartmentChip(
+                  label: dept.name,
                   selected: isSelected,
-                  onSelected: (_) {
+                  onSelected: () {
                     final newValue = isSelected ? null : dept.id;
+
                     setState(() => _selectedDepartmentId = newValue);
+
                     Provider.of<WorkerProvider>(
                       context,
                       listen: false,
                     ).filterByDepartment(newValue);
                   },
-                  selectedColor: Colors.blue[100],
-                  checkmarkColor: Colors.blue[700],
-                  labelStyle: TextStyle(
-                    color: isSelected ? Colors.blue[700] : Colors.grey[700],
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                  ),
-                  backgroundColor: Colors.grey[100],
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    side: BorderSide(
-                      color: isSelected
-                          ? Colors.blue[700]!
-                          : Colors.transparent,
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ],
+                );
+              }),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDepartmentChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onSelected,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Material(
+        color: selected ? _primary : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: onSelected,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: selected ? _primary : const Color(0xFFE0E6EF),
+              ),
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: selected ? Colors.white : _textMuted,
+                fontSize: 12,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ),
         ),
       ),
     );

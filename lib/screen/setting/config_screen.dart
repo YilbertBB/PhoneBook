@@ -26,6 +26,15 @@ class ConfigScreenState extends State<ConfigScreen> {
   bool _loadingCacheInfo = false;
   bool _checkingForUpdates = false;
 
+  static const Color _primary = Color(0xFF1769AA);
+  static const Color _primaryDark = Color(0xFF104C80);
+  static const Color _background = Color(0xFFF4F7FB);
+  static const Color _surface = Colors.white;
+  static const Color _textDark = Color(0xFF243447);
+  static const Color _textMuted = Color(0xFF718096);
+  static const Color _success = Color(0xFF159B72);
+  static const Color _danger = Color(0xFFD94B4B);
+
   @override
   void initState() {
     super.initState();
@@ -860,405 +869,641 @@ class ConfigScreenState extends State<ConfigScreen> {
     }
   }
 
+  Widget _buildSectionTitle(String title, String subtitle, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12, top: 26),
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: _primary.withValues(alpha: 0.09),
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Icon(icon, color: _primary, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: _textDark,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(fontSize: 12, color: _textMuted),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsCard({required List<Widget> children}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE8EDF4)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF243447).withValues(alpha: 0.035),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(children: children),
+    );
+  }
+
+  Widget _buildSettingTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    Color iconColor = _primary,
+    Widget? trailing,
+    bool showDivider = true,
+  }) {
+    return Column(
+      children: [
+        ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 7,
+          ),
+          leading: Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.09),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: iconColor, size: 21),
+          ),
+          title: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: _textDark,
+            ),
+          ),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 12,
+                color: _textMuted,
+                height: 1.35,
+              ),
+            ),
+          ),
+          trailing:
+              trailing ??
+              const Icon(Icons.chevron_right_rounded, color: Color(0xFF9AA7B7)),
+          onTap: onTap,
+        ),
+        if (showDivider)
+          const Divider(
+            height: 1,
+            indent: 70,
+            endIndent: 16,
+            color: Color(0xFFEDF1F6),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildProfileCard() {
+    final user = _currentUser;
+    final isAdmin = user?.isAdmin ?? false;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [_primary, _primaryDark],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: _primary.withValues(alpha: 0.20),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(17),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Icon(
+                  user == null
+                      ? Icons.person_outline_rounded
+                      : isAdmin
+                      ? Icons.admin_panel_settings_rounded
+                      : Icons.person_rounded,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user?.username ?? 'Invitado',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      user?.email ?? 'Modo de solo lectura',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.78),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 11,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.18),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      user == null
+                          ? Icons.visibility_outlined
+                          : isAdmin
+                          ? Icons.verified_user_outlined
+                          : Icons.visibility_outlined,
+                      size: 15,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      user == null
+                          ? 'Invitado'
+                          : isAdmin
+                          ? 'Administrador'
+                          : 'Consultor',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              if (user != null)
+                IconButton(
+                  tooltip: 'Información del usuario',
+                  onPressed: _showUserInfo,
+                  icon: const Icon(
+                    Icons.info_outline_rounded,
+                    color: Colors.white,
+                  ),
+                ),
+              IconButton(
+                tooltip: user != null ? 'Cerrar sesión' : 'Iniciar sesión',
+                onPressed: () {
+                  if (user != null) {
+                    _showLogoutConfirmation();
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginScreen(),
+                      ),
+                    );
+                  }
+                },
+                icon: Icon(
+                  user != null ? Icons.logout_rounded : Icons.login_rounded,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVersionCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE8EDF4)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: _success.withValues(alpha: 0.09),
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: const Icon(
+              Icons.verified_outlined,
+              color: _success,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Versión de la aplicación',
+                  style: TextStyle(
+                    color: _textDark,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Versión $_appVersion',
+                  style: const TextStyle(color: _textMuted, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: _success.withValues(alpha: 0.09),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: const Text(
+              'Actualizada',
+              style: TextStyle(
+                color: _success,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _background,
       appBar: AppBar(
-        title: const Text(
-          'Configuración',
-          style: TextStyle(color: Colors.white),
+        backgroundColor: _primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        titleSpacing: 20,
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Configuración',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
+            ),
+            Text(
+              'Preferencias y administración',
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.white70,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
         ),
-        backgroundColor: Colors.blue[700],
-        elevation: 1,
-        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    color: Colors.blue[50],
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 30,
-                          backgroundColor: Colors.blue[100],
-                          child: Icon(
-                            _currentUser != null && _currentUser!.isAdmin
-                                ? Icons.admin_panel_settings
-                                : _currentUser != null
-                                ? Icons.person
-                                : Icons.person_outline,
-                            size: 30,
-                            color: Colors.blue[700],
+          ? const Center(child: CircularProgressIndicator(color: _primary))
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                final isDesktop = constraints.maxWidth >= 900;
+                final horizontalPadding = isDesktop ? 32.0 : 18.0;
+
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1050),
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.fromLTRB(
+                        horizontalPadding,
+                        24,
+                        horizontalPadding,
+                        30,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // PERFIL
+                          _buildProfileCard(),
+
+                          // PREFERENCIAS
+                          if (!kIsWeb) ...[
+                            _buildSectionTitle(
+                              'Preferencias',
+                              'Personaliza el comportamiento de la aplicación',
+                              Icons.tune_rounded,
+                            ),
+                            _buildSettingsCard(
+                              children: [
+                                SwitchListTile(
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 7,
+                                  ),
+                                  secondary: Container(
+                                    width: 42,
+                                    height: 42,
+                                    decoration: BoxDecoration(
+                                      color: _primary.withValues(alpha: 0.09),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      Icons.notifications_active_outlined,
+                                      color: _primary,
+                                    ),
+                                  ),
+                                  title: const Text(
+                                    'Notificaciones',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: _textDark,
+                                    ),
+                                  ),
+                                  subtitle: const Text(
+                                    'Recibir notificaciones importantes',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: _textMuted,
+                                    ),
+                                  ),
+                                  value: _notifications,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _notifications = value;
+                                    });
+                                  },
+                                  activeThumbColor: _primary,
+                                ),
+                              ],
+                            ),
+                          ],
+
+                          // ALMACENAMIENTO
+                          _buildSectionTitle(
+                            'Almacenamiento',
+                            'Consulta y administra los datos guardados localmente',
+                            Icons.storage_rounded,
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          _buildSettingsCard(
                             children: [
-                              Text(
-                                _currentUser?.username ?? 'Invitado',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue,
-                                ),
+                              _buildSettingTile(
+                                icon: Icons.storage_rounded,
+                                title: 'Información de caché',
+                                subtitle: _loadingCacheInfo
+                                    ? 'Calculando almacenamiento...'
+                                    : '${_cacheInfo['items'] ?? 0} elementos · ${_formatBytes(_cacheInfo['total'] ?? 0)}',
+                                onTap: _showCacheInfoDialog,
                               ),
-                              Text(
-                                _currentUser?.email ?? 'Modo de solo lectura',
-                                style: const TextStyle(color: Colors.grey),
-                              ),
-                              const SizedBox(height: 4),
-                              Chip(
-                                label: Text(
-                                  _currentUser != null
-                                      ? (_currentUser!.isAdmin
-                                            ? 'Administrador'
-                                            : 'Consultor')
-                                      : 'Invitado',
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                                backgroundColor:
-                                    _currentUser != null &&
-                                        _currentUser!.isAdmin
-                                    ? Colors.red[100]
-                                    : Colors.green[100],
-                                labelStyle: TextStyle(
-                                  color:
-                                      _currentUser != null &&
-                                          _currentUser!.isAdmin
-                                      ? Colors.red[800]
-                                      : Colors.green[800],
-                                ),
+                              _buildSettingTile(
+                                icon: Icons.cleaning_services_outlined,
+                                iconColor: _danger,
+                                title: 'Borrar caché',
+                                subtitle:
+                                    'Eliminar datos almacenados localmente',
+                                onTap: _showClearCacheOptions,
+                                showDivider: false,
                               ),
                             ],
                           ),
-                        ),
-                        if (_currentUser != null)
-                          IconButton(
-                            icon: const Icon(
-                              Icons.info_outline,
-                              color: Colors.blue,
-                            ),
-                            onPressed: _showUserInfo,
-                            tooltip: 'Ver información',
+
+                          // INFORMACIÓN
+                          _buildSectionTitle(
+                            'Información',
+                            'Detalles de la aplicación y condiciones de uso',
+                            Icons.info_outline_rounded,
                           ),
-                        IconButton(
-                          icon: Icon(
-                            _currentUser != null ? Icons.logout : Icons.login,
-                            color: Colors.blue,
-                          ),
-                          onPressed: () {
-                            if (_currentUser != null) {
-                              _showLogoutConfirmation();
-                            } else {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const LoginScreen(),
+                          _buildSettingsCard(
+                            children: [
+                              _buildSettingTile(
+                                icon: Icons.info_outline_rounded,
+                                title: 'Acerca de',
+                                subtitle: 'Información de la aplicación',
+                                onTap: _showAboutDialog,
+                              ),
+                              _buildSettingTile(
+                                icon: Icons.security_rounded,
+                                title: 'Privacidad y términos',
+                                subtitle: 'Políticas de uso y privacidad',
+                                onTap: _showPrivacyPolicy,
+                                showDivider: !kIsWeb,
+                              ),
+                              if (!kIsWeb)
+                                _buildSettingTile(
+                                  icon: Icons.settings_ethernet_rounded,
+                                  title: 'Configuración de red',
+                                  subtitle:
+                                      'Configuración APN y conexión corporativa',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const NetworkConfigScreen(),
+                                      ),
+                                    );
+                                  },
+                                  showDivider: false,
                                 ),
-                              );
-                            }
-                          },
-                          tooltip: _currentUser != null
-                              ? 'Cerrar sesión'
-                              : 'Iniciar sesión',
-                        ),
-                      ],
-                    ),
-                  ),
+                            ],
+                          ),
 
-                  const SizedBox(height: 8),
-
-                  if (!kIsWeb) ...[
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
-                      child: Text(
-                        'PREFERENCIAS',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ),
-                    Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        children: [
-                          SwitchListTile(
-                            title: const Text('Notificaciones'),
-                            subtitle: const Text(
-                              'Recibir notificaciones importantes',
+                          // ACTUALIZACIONES
+                          if (!kIsWeb) ...[
+                            _buildSectionTitle(
+                              'Actualizaciones',
+                              'Comprueba si existe una nueva versión',
+                              Icons.system_update_alt_rounded,
                             ),
-                            value: _notifications,
-                            onChanged: (value) {
-                              setState(() {
-                                _notifications = value;
-                              });
-                            },
-                            activeThumbColor: Colors.blue[700],
+                            _buildVersionCard(),
+                            const SizedBox(height: 14),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 52,
+                              child: ElevatedButton.icon(
+                                onPressed: _checkingForUpdates
+                                    ? null
+                                    : _checkForUpdates,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _primary,
+                                  foregroundColor: Colors.white,
+                                  disabledBackgroundColor: _primary.withValues(
+                                    alpha: 0.5,
+                                  ),
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(13),
+                                  ),
+                                ),
+                                icon: _checkingForUpdates
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : Icon(
+                                        _updateAvailable
+                                            ? Icons.download_rounded
+                                            : Icons.refresh_rounded,
+                                      ),
+                                label: Text(
+                                  _checkingForUpdates
+                                      ? 'VERIFICANDO ACTUALIZACIONES...'
+                                      : _updateAvailable
+                                      ? 'DESCARGAR ACTUALIZACIÓN'
+                                      : 'BUSCAR ACTUALIZACIONES',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+
+                          // PIE DE PÁGINA
+                          const SizedBox(height: 38),
+                          Center(
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: 54,
+                                  height: 54,
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [_primary, _primaryDark],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: _primary.withValues(alpha: 0.18),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.near_me_rounded,
+                                    color: Colors.white,
+                                    size: 28,
+                                  ),
+                                ),
+                                const SizedBox(height: 13),
+                                const Text(
+                                  'Directorio Telefónico',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    color: _textDark,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  'Versión $_appVersion',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: _textMuted,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                const Text(
+                                  'Desoft Cuba · © 2025',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: _textMuted,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
-                    child: Text(
-                      'ALMACENAMIENTO',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey,
-                        letterSpacing: 1,
-                      ),
-                    ),
                   ),
-                  Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        ListTile(
-                          leading: const Icon(
-                            Icons.storage,
-                            color: Colors.blue,
-                          ),
-                          title: const Text('Información de Caché'),
-                          subtitle: _loadingCacheInfo
-                              ? const Text('Calculando...')
-                              : Text(
-                                  '${_cacheInfo['items'] ?? 0} items • ${_formatBytes(_cacheInfo['total'] ?? 0)}',
-                                ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: _showCacheInfoDialog,
-                        ),
-                        const Divider(height: 1, indent: 16),
-                        ListTile(
-                          leading: const Icon(
-                            Icons.delete_sweep,
-                            color: Colors.red,
-                          ),
-                          title: const Text('Borrar Caché'),
-                          subtitle: const Text(
-                            'Eliminar datos almacenados localmente',
-                          ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _showClearCacheOptions(),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
-                    child: Text(
-                      'INFORMACIÓN',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                  ),
-                  Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        ListTile(
-                          leading: const Icon(Icons.info, color: Colors.blue),
-                          title: const Text('Acerca de'),
-                          subtitle: const Text('Información de la aplicación'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: _showAboutDialog,
-                        ),
-                        const Divider(height: 1, indent: 16),
-                        ListTile(
-                          leading: const Icon(
-                            Icons.security,
-                            color: Colors.blue,
-                          ),
-                          title: const Text('Privacidad y Términos'),
-                          subtitle: const Text('Políticas de uso y privacidad'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: _showPrivacyPolicy,
-                        ),
-                        if (!kIsWeb) ...[
-                          const Divider(height: 1, indent: 16),
-                          ListTile(
-                            leading: const Icon(
-                              Icons.settings_cell,
-                              color: Colors.blue,
-                            ),
-                            title: const Text('Configuración de Red'),
-                            subtitle: const Text(
-                              'Configuración APN y conexión corporativa',
-                            ),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const NetworkConfigScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-
-                  if (!kIsWeb) ...[
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
-                      child: Text(
-                        'ACTUALIZACIONES',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ),
-                    Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ListTile(
-                        leading: Icon(
-                          Icons.update,
-                          color: _updateAvailable ? Colors.green : Colors.blue,
-                        ),
-                        title: const Text('Versión de la App'),
-                        subtitle: Text('Versión $_appVersion'),
-                        trailing: _updateAvailable
-                            ? const Chip(
-                                label: Text('NUEVO'),
-                                backgroundColor: Colors.green,
-                                labelStyle: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              )
-                            : const Icon(
-                                Icons.check_circle,
-                                color: Colors.green,
-                              ),
-                      ),
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: ElevatedButton.icon(
-                        onPressed: _checkingForUpdates
-                            ? null
-                            : _checkForUpdates,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[700],
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(double.infinity, 56),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 2,
-                        ),
-                        icon: _checkingForUpdates
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Icon(
-                                _updateAvailable
-                                    ? Icons.download
-                                    : Icons.system_update,
-                                size: 24,
-                              ),
-                        label: Text(
-                          _checkingForUpdates
-                              ? 'VERIFICANDO...'
-                              : _updateAvailable
-                              ? 'DESCARGAR ACTUALIZACIÓN'
-                              : 'BUSCAR ACTUALIZACIONES',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                  SizedBox(height: 40),
-                  Center(
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Color.fromARGB(255, 0, 106, 152),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Icon(
-                            Icons.near_me,
-                            color: Colors.white,
-                            size: 32,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'v1.0.0',
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 1,
-                            color: Color(0xFF444650),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Directorio Telefónico © 2025',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFF444650),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                ],
-              ),
+                );
+              },
             ),
     );
   }

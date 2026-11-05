@@ -33,6 +33,15 @@ class LocalScreenState extends State<LocalScreen> {
   List<Map<String, dynamic>> _previewData = [];
   bool _isProcessingExcel = false;
 
+  static const Color _primary = Color(0xFF1769AA);
+  static const Color _primaryDark = Color(0xFF104C80);
+  static const Color _background = Color(0xFFF4F7FB);
+  static const Color _surface = Colors.white;
+  static const Color _textDark = Color(0xFF243447);
+  static const Color _textMuted = Color(0xFF718096);
+  static const Color _warning = Color.fromRGBO(153, 155, 21, 1);
+  static const Color _danger = Color(0xFFD94B4B);
+
   @override
   void initState() {
     super.initState();
@@ -72,11 +81,15 @@ class LocalScreenState extends State<LocalScreen> {
 
     return FloatingActionButton.extended(
       onPressed: _showAddLocalOptions,
-      icon: const Icon(Icons.add, color: Colors.white),
-      label: const Text('Agregar', style: TextStyle(color: Colors.white)),
-      backgroundColor: Colors.green[700],
+      backgroundColor: _primary,
+      foregroundColor: Colors.white,
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+      icon: const Icon(Icons.add_business_rounded),
+      label: const Text(
+        'Agregar local',
+        style: TextStyle(fontWeight: FontWeight.w600),
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     );
   }
 
@@ -807,83 +820,105 @@ class LocalScreenState extends State<LocalScreen> {
     return ScaffoldMessenger(
       key: _scaffoldMessengerKey,
       child: Scaffold(
+        backgroundColor: _background,
         appBar: AppBar(
-          title: const Text(
-            'Locales',
-            style: TextStyle(color: Colors.white, fontSize: 20),
-          ),
-          backgroundColor: Colors.green[700],
+          elevation: 0,
+          backgroundColor: _primary,
+          foregroundColor: Colors.white,
+          titleSpacing: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+            icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
           ),
+          title: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Locales',
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                'Directorio de sedes y oficinas',
+                style: TextStyle(fontSize: 11, color: Colors.white70),
+              ),
+            ],
+          ),
           actions: [
-            // Botón de sincronización offline
             Consumer<LocalProvider>(
               builder: (context, provider, child) {
-                if (provider.syncing) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    ),
-                  );
-                }
-
                 return IconButton(
-                  icon: Icon(
-                    provider.isOffline ? Icons.cloud_off : Icons.cloud_done,
-                    color: provider.isOffline
-                        ? Colors.green[100]
-                        : Colors.white,
-                    size: 24,
-                  ),
-                  onPressed: provider.isOffline
-                      ? () => _syncLocals(localProvider)
-                      : null,
                   tooltip: provider.isOffline
-                      ? 'Modo offline - Toque para sincronizar'
+                      ? 'Modo offline - Sincronizar'
                       : 'En línea',
+                  onPressed: provider.syncing
+                      ? null
+                      : provider.isOffline
+                      ? () => _syncLocals(provider)
+                      : null,
+                  icon: provider.syncing
+                      ? const SizedBox(
+                          width: 21,
+                          height: 21,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Icon(
+                          provider.isOffline
+                              ? Icons.cloud_off
+                              : Icons.cloud_done,
+                          color: Colors.white,
+                        ),
                 );
               },
             ),
-
             IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.white, size: 24),
+              tooltip: 'Actualizar',
+              icon: const Icon(Icons.refresh, color: Colors.white),
               onPressed: () {
                 localProvider.loadLocals(forceRefresh: true);
-                _showSnackBar('🔄 Actualizando lista...');
+                _showSnackBar('Actualizando lista...');
               },
-              tooltip: 'Actualizar',
             ),
+            const SizedBox(width: 6),
           ],
         ),
-        // body: _buildBody(localProvider, isAdmin),
         body: Stack(
           children: [
             _buildBody(localProvider, isAdmin),
-
-            if (localProvider.loading && localProvider.hasLoaded) ...[
-              const ModalBarrier(dismissible: false, color: Colors.black54),
-              const Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(color: Colors.green),
-                    SizedBox(height: 16),
-                    Text(
-                      "🔄 Actualizando lista...",
-                      style: TextStyle(color: Colors.white, fontSize: 16),
+            if (localProvider.loading && localProvider.hasLoaded)
+              Container(
+                color: Colors.black.withValues(alpha: 0.35),
+                child: const Center(
+                  child: Card(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 28,
+                        vertical: 24,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(color: _primary),
+                          SizedBox(height: 16),
+                          Text(
+                            'Actualizando locales...',
+                            style: TextStyle(
+                              color: _textDark,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ],
           ],
         ),
         floatingActionButton: _buildFloatingActionButton(isAdmin),
@@ -894,15 +929,15 @@ class LocalScreenState extends State<LocalScreen> {
 
   Widget _buildBody(LocalProvider localProvider, bool isAdmin) {
     if (localProvider.loading && !localProvider.hasLoaded) {
-      return Center(
+      return const Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(color: Colors.green[700]),
-            const SizedBox(height: 16),
+            CircularProgressIndicator(color: _primary),
+            SizedBox(height: 16),
             Text(
               'Cargando locales...',
-              style: TextStyle(color: Colors.grey[600]),
+              style: TextStyle(color: _textMuted, fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -910,371 +945,456 @@ class LocalScreenState extends State<LocalScreen> {
     }
 
     if (localProvider.hasError && !localProvider.hasLoaded) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              localProvider.isOffline ? Icons.cloud_off : Icons.error_outline,
-              size: 64,
-              color: localProvider.isOffline ? Colors.green : Colors.red,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              localProvider.isOffline
-                  ? 'Modo offline'
-                  : 'Error al cargar locales',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Text(
-                localProvider.isOffline && localProvider.hasLocalData
-                    ? 'Mostrando ${localProvider.localDataCount} locales almacenados localmente.'
-                    : localProvider.error,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            if (localProvider.isOffline && localProvider.hasLocalData)
-              Column(
-                children: [
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.cloud_upload, color: Colors.white),
-                    label: const Text(
-                      'Sincronizar ahora',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    onPressed: () => _syncLocals(localProvider),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green[700],
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: () => localProvider.loadLocals(),
-                    child: const Text('Continuar en modo offline'),
-                  ),
-                ],
-              )
-            else
-              ElevatedButton.icon(
-                icon: const Icon(Icons.refresh, color: Colors.white),
-                label: const Text(
-                  'Reintentar',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onPressed: () => localProvider.loadLocals(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green[700],
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      );
+      return _buildLocalErrorState(localProvider);
     }
 
     final lites = localProvider.localLites;
 
-    return Column(
-      children: [
-        // Barra de búsqueda optimizada
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(30),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 850;
+        final horizontalPadding = isWide ? 28.0 : 16.0;
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1250),
+            child: Column(
+              children: [
+                _buildLocalsHeader(localProvider, isWide, horizontalPadding),
+
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    horizontalPadding,
+                    20,
+                    horizontalPadding,
+                    0,
+                  ),
+                  child: _buildLocalSearchField(),
+                ),
+
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    horizontalPadding,
+                    16,
+                    horizontalPadding,
+                    12,
+                  ),
+                  child: _buildLocalsCounter(localProvider, lites.length),
+                ),
+
+                Expanded(
+                  child: RefreshIndicator(
+                    color: _primary,
+                    onRefresh: () async {
+                      await localProvider.loadLocals(forceRefresh: true);
+                      _showSnackBar('Lista actualizada');
+                    },
+                    child: lites.isEmpty && !localProvider.isLoadingMore
+                        ? _buildEmptyState(isAdmin, localProvider)
+                        : ListView.builder(
+                            controller: localProvider.scrollController,
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: EdgeInsets.fromLTRB(
+                              horizontalPadding,
+                              4,
+                              horizontalPadding,
+                              110,
+                            ),
+                            itemCount:
+                                lites.length + (localProvider.hasMore ? 1 : 0),
+                            itemBuilder: (context, index) {
+                              if (index >= lites.length) {
+                                return _buildLoadingIndicator(localProvider);
+                              }
+
+                              return _buildLocalCard(lites[index], isAdmin);
+                            },
+                          ),
+                  ),
                 ),
               ],
             ),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Buscar por nombre o teléfono...',
-                prefixIcon: const Icon(Icons.search, color: Colors.green),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(Icons.close, color: Colors.grey[600]),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {});
-                          localProvider.clearSearch();
-                        },
-                        tooltip: 'Limpiar búsqueda',
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
-                ),
-                filled: true,
-                fillColor: Colors.white,
-              ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLocalsHeader(
+    LocalProvider provider,
+    bool isWide,
+    double horizontalPadding,
+  ) {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.fromLTRB(horizontalPadding, 20, horizontalPadding, 0),
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [_primary, _primaryDark],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: _primary.withValues(alpha: 0.18),
+            blurRadius: 16,
+            offset: const Offset(0, 7),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: const Icon(
+              Icons.business_rounded,
+              color: Colors.white,
+              size: 29,
             ),
           ),
-        ),
-
-        const SizedBox(height: 12),
-
-        // Contador y estadísticas optimizado
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Gestión de locales',
+                  style: TextStyle(
+                    fontSize: isWide ? 21 : 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  'Consulta y administra las sedes registradas.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withValues(alpha: 0.85),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (isWide)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
                 children: [
-                  Icon(Icons.business, size: 16, color: Colors.green[700]),
-                  const SizedBox(width: 6),
-                  Consumer<LocalProvider>(
-                    builder: (context, provider, child) {
-                      final totalCount = provider.isSearching
-                          ? lites.length
-                          : (provider.isOffline
-                                ? provider.localDataCount
-                                : provider.totalLocals);
-
-                      return Text(
-                        '$totalCount locales${provider.isOffline ? ' (offline)' : ''}',
-                        style: TextStyle(
-                          color: provider.isOffline
-                              ? Colors.green[700]
-                              : Colors.grey[700],
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      );
-                    },
+                  Text(
+                    '${provider.isSearching ? provider.localLites.length : provider.totalLocals}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Text(
+                    'Locales',
+                    style: TextStyle(color: Colors.white70, fontSize: 11),
                   ),
                 ],
               ),
+            ),
+        ],
+      ),
+    );
+  }
 
-              Consumer<LocalProvider>(
-                builder: (context, provider, child) {
-                  if (provider.isOffline) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.green[50],
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.green[200]!),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.cloud_off,
-                            size: 12,
-                            color: Colors.green[700],
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Offline',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.green[700],
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  return const SizedBox.shrink();
-                },
+  Widget _buildLocalSearchField() {
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: _searchController,
+      builder: (context, value, child) {
+        return Container(
+          decoration: BoxDecoration(
+            color: _surface,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.045),
+                blurRadius: 12,
+                offset: const Offset(0, 3),
               ),
             ],
           ),
-        ),
+          child: TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: 'Buscar por nombre o teléfono...',
+              hintStyle: const TextStyle(color: _textMuted, fontSize: 14),
+              prefixIcon: const Icon(Icons.search_rounded, color: _primary),
+              suffixIcon: value.text.isNotEmpty
+                  ? IconButton(
+                      tooltip: 'Limpiar búsqueda',
+                      icon: const Icon(Icons.close, color: _textMuted),
+                      onPressed: () {
+                        _searchController.clear();
+                        Provider.of<LocalProvider>(
+                          context,
+                          listen: false,
+                        ).clearSearch();
+                        setState(() {});
+                      },
+                    )
+                  : null,
+              filled: true,
+              fillColor: _surface,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 18,
+                vertical: 17,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: Color(0xFFE6ECF3)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: _primary, width: 1.4),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
-        const SizedBox(height: 12),
+  Widget _buildLocalsCounter(LocalProvider provider, int visibleCount) {
+    final totalCount = provider.isSearching
+        ? visibleCount
+        : provider.isOffline
+        ? provider.localDataCount
+        : provider.totalLocals;
 
-        // Lista de locales
+    return Row(
+      children: [
+        const Icon(Icons.business_outlined, size: 18, color: _primary),
+        const SizedBox(width: 8),
         Expanded(
-          child: RefreshIndicator(
-            onRefresh: () async {
-              await localProvider.loadLocals(forceRefresh: true);
-              _showSnackBar('✅ Lista actualizada');
-            },
-            color: Colors.green[700],
-            child: lites.isEmpty && !localProvider.isLoadingMore
-                ? _buildEmptyState(isAdmin, localProvider)
-                : ListView.builder(
-                    controller: localProvider.scrollController,
-                    padding: const EdgeInsets.all(16),
-                    itemCount: lites.length + (localProvider.hasMore ? 1 : 0),
-                    itemExtent: 96,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    itemBuilder: (context, index) {
-                      if (index >= lites.length) {
-                        return _buildLoadingIndicator(localProvider);
-                      }
-
-                      final localLite = lites[index];
-                      return _buildLocalCard(localLite, isAdmin);
-                    },
-                  ),
+          child: Text(
+            provider.isSearching
+                ? '$visibleCount resultados encontrados'
+                : '$totalCount locales registrados',
+            style: const TextStyle(
+              color: _textDark,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
+        if (provider.isOffline)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF4E5),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFFFD9A3)),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.cloud_off, size: 14, color: Color(0xFFB7791F)),
+                SizedBox(width: 5),
+                Text(
+                  'Offline',
+                  style: TextStyle(
+                    color: Color(0xFF9A6700),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
 
   Widget _buildLoadingIndicator(LocalProvider provider) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 24),
       child: Center(
         child: provider.isLoadingMore
-            ? CircularProgressIndicator(color: Colors.green[700])
+            ? const SizedBox(
+                width: 25,
+                height: 25,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: _primary,
+                ),
+              )
             : const SizedBox.shrink(),
       ),
     );
   }
 
   Widget _buildLocalCard(LocalLite localLite, bool isAdmin) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: () => _loadAndShowLocalDetails(localLite.id, isAdmin),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.green[100],
-                  shape: BoxShape.circle,
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: const Color(0xFFE9EEF5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(15),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(15),
+          onTap: () => _loadAndShowLocalDetails(localLite.id, isAdmin),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+            child: Row(
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: _primary.withValues(alpha: 0.09),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    localLite.initials,
+                    style: const TextStyle(
+                      color: _primary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
                 ),
-                child: Center(
+                const SizedBox(width: 14),
+                Expanded(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        localLite.initials,
-                        style: TextStyle(
-                          color: Colors.green[700],
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                        localLite.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: _textDark,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
                         ),
                       ),
+                      const SizedBox(height: 7),
+                      if (localLite.hasPhone)
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.phone_outlined,
+                              size: 15,
+                              color: _textMuted,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                localLite.phone,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: _textMuted,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      else
+                        const Row(
+                          children: [
+                            Icon(
+                              Icons.phone_disabled_outlined,
+                              size: 15,
+                              color: _textMuted,
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'Sin teléfono registrado',
+                              style: TextStyle(color: _textMuted, fontSize: 12),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
-              ),
-
-              const SizedBox(width: 16),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      localLite.name,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.grey[800],
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                if (isAdmin)
+                  PopupMenuButton<String>(
+                    tooltip: 'Opciones del local',
+                    icon: const Icon(Icons.more_vert, color: _textMuted),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(height: 4),
-                    if (localLite.hasPhone)
-                      Row(
-                        children: [
-                          Icon(Icons.phone, size: 14, color: Colors.green[600]),
-                          const SizedBox(width: 4),
-                          Text(
-                            localLite.phone,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.green[600],
+                    itemBuilder: (context) => const [
+                      PopupMenuItem<String>(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.edit_outlined,
+                              color: _primary,
+                              size: 19,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+                            SizedBox(width: 10),
+                            Text('Editar'),
+                          ],
+                        ),
                       ),
-                  ],
-                ),
-              ),
-
-              if (isAdmin)
-                PopupMenuButton<String>(
-                  icon: Icon(
-                    Icons.more_vert,
-                    color: Colors.green[700],
-                    size: 20,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  itemBuilder: (context) => [
-                    const PopupMenuItem<String>(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, color: Colors.blue, size: 18),
-                          SizedBox(width: 8),
-                          Text('Editar'),
-                        ],
+                      PopupMenuItem<String>(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.delete_outline,
+                              color: _danger,
+                              size: 19,
+                            ),
+                            SizedBox(width: 10),
+                            Text('Eliminar'),
+                          ],
+                        ),
                       ),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, color: Colors.red, size: 18),
-                          SizedBox(width: 8),
-                          Text('Eliminar'),
-                        ],
-                      ),
-                    ),
-                  ],
-                  onSelected: (value) async {
-                    final local = await _loadLocalById(localLite.id);
-                    if (local != null) {
-                      if (value == 'edit') {
-                        _showEditLocalDialog(local);
-                      } else if (value == 'delete') {
-                        _showDeleteConfirmation(local);
+                    ],
+                    onSelected: (value) async {
+                      final local = await _loadLocalById(localLite.id);
+                      if (local != null && mounted) {
+                        if (value == 'edit') {
+                          _showEditLocalDialog(local);
+                        } else if (value == 'delete') {
+                          _showDeleteConfirmation(local);
+                        }
                       }
-                    }
-                  },
-                ),
-            ],
+                    },
+                  )
+                else
+                  const Padding(
+                    padding: EdgeInsets.only(left: 8),
+                    child: Icon(Icons.chevron_right, color: Color(0xFFB0BAC7)),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1293,180 +1413,232 @@ class LocalScreenState extends State<LocalScreen> {
     }
   }
 
-  Widget _buildEmptyState(bool isAdmin, LocalProvider provider) {
+  Widget _buildLocalErrorState(LocalProvider provider) {
+    final hasOfflineData = provider.isOffline && provider.hasLocalData;
+
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Consumer<LocalProvider>(
-              builder: (context, provider, child) {
-                return Column(
-                  children: [
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: provider.isOffline
-                            ? Colors.green[50]
-                            : Colors.green[50],
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        provider.isOffline
-                            ? Icons.cloud_off
-                            : _searchController.text.isEmpty
-                            ? Icons.business_outlined
-                            : Icons.search_off,
-                        size: 60,
-                        color: provider.isOffline
-                            ? Colors.green[300]
-                            : Colors.green[300],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    if (provider.isOffline)
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.green[50],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.green[200]!),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.info,
-                              color: Colors.green[700],
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Modo offline',
-                              style: TextStyle(color: Colors.green[700]),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                );
-              },
-            ),
-
-            const SizedBox(height: 24),
-
-            Consumer<LocalProvider>(
-              builder: (context, provider, child) {
-                return Column(
-                  children: [
-                    Text(
-                      _searchController.text.isEmpty
-                          ? provider.isOffline
-                                ? 'No hay datos locales de locales'
-                                : 'No hay locales registrados'
-                          : 'No se encontraron resultados',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[700],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: Text(
-                        _searchController.text.isEmpty
-                            ? provider.isOffline
-                                  ? 'Conéctate a internet para cargar los locales.'
-                                  : ''
-                            : 'No encontramos coincidencias con "${_searchController.text}". Intenta con otros términos.',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-
-            const SizedBox(height: 24),
-
-            Consumer<LocalProvider>(
-              builder: (context, provider, child) {
-                if (provider.isOffline && _searchController.text.isEmpty) {
-                  return Column(
-                    children: [
-                      ElevatedButton.icon(
-                        icon: const Icon(
-                          Icons.cloud_download,
-                          color: Colors.white,
-                        ),
-                        label: const Text('Sincronizar desde internet'),
-                        onPressed: () => _syncLocals(provider),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green[700],
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 14,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'O verifica tu conexión a internet',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                      ),
-                    ],
-                  );
-                }
-
-                if (isAdmin && _searchController.text.isEmpty) {
-                  return ElevatedButton.icon(
-                    icon: const Icon(Icons.add, color: Colors.white),
-                    label: const Text(
-                      'Agregar Primer Local',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    onPressed: _showAddLocalOptions,
+        padding: const EdgeInsets.all(28),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 430),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 92,
+                height: 92,
+                decoration: BoxDecoration(
+                  color: (hasOfflineData ? _warning : _danger).withValues(
+                    alpha: 0.10,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  hasOfflineData
+                      ? Icons.cloud_off_rounded
+                      : Icons.error_outline_rounded,
+                  color: hasOfflineData ? _warning : _danger,
+                  size: 44,
+                ),
+              ),
+              const SizedBox(height: 22),
+              Text(
+                hasOfflineData
+                    ? 'Modo sin conexión'
+                    : 'No se pudieron cargar los locales',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.bold,
+                  color: _textDark,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                hasOfflineData
+                    ? 'Hay ${provider.localDataCount} locales guardados en este dispositivo.'
+                    : provider.error,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: _textMuted,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 24),
+              if (hasOfflineData) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _syncLocals(provider),
+                    icon: const Icon(Icons.cloud_sync),
+                    label: const Text('Sincronizar ahora'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green[700],
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 14,
-                      ),
+                      backgroundColor: _primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                  );
-                }
-
-                return const SizedBox.shrink();
-              },
-            ),
-
-            if (_searchController.text.isNotEmpty)
-              TextButton.icon(
-                icon: const Icon(Icons.clear_all),
-                label: const Text('Limpiar búsqueda'),
-                onPressed: () {
-                  _searchController.clear();
-                  setState(() {});
-                  provider.clearSearch();
-                },
-                style: TextButton.styleFrom(foregroundColor: Colors.green[700]),
-              ),
-          ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => provider.loadLocals(),
+                  child: const Text(
+                    'Continuar en modo offline',
+                    style: TextStyle(color: _primary),
+                  ),
+                ),
+              ] else
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => provider.loadLocals(),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Reintentar'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildEmptyState(bool isAdmin, LocalProvider provider) {
+    final isSearching = _searchController.text.trim().isNotEmpty;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(28),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight - 56),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 112,
+                    height: 112,
+                    decoration: BoxDecoration(
+                      color: _primary.withValues(alpha: 0.08),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isSearching
+                          ? Icons.search_off_rounded
+                          : provider.isOffline
+                          ? Icons.cloud_off_rounded
+                          : Icons.business_outlined,
+                      size: 52,
+                      color: _primary,
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  Text(
+                    isSearching
+                        ? 'No se encontraron resultados'
+                        : provider.isOffline
+                        ? 'No hay locales disponibles'
+                        : 'Aún no hay locales registrados',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.bold,
+                      color: _textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      isSearching
+                          ? 'No encontramos coincidencias con "${_searchController.text}". Prueba con otro nombre o teléfono.'
+                          : provider.isOffline
+                          ? 'Conéctate a internet para cargar los locales o intenta sincronizar los datos.'
+                          : 'Cuando registres un local, aparecerá aquí para que puedas consultarlo y administrarlo.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: _textMuted,
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  if (isSearching)
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        _searchController.clear();
+                        provider.clearSearch();
+                        setState(() {});
+                      },
+                      icon: const Icon(Icons.clear),
+                      label: const Text('Limpiar búsqueda'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: _primary,
+                        side: const BorderSide(color: _primary),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 13,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    )
+                  else if (provider.isOffline)
+                    ElevatedButton.icon(
+                      onPressed: () => _syncLocals(provider),
+                      icon: const Icon(Icons.cloud_sync),
+                      label: const Text('Sincronizar locales'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 13,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    )
+                  else if (isAdmin)
+                    ElevatedButton.icon(
+                      onPressed: _showAddLocalOptions,
+                      icon: const Icon(Icons.add),
+                      label: const Text('Agregar primer local'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 13,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
