@@ -6,7 +6,7 @@ import 'data/efemeride_repository.dart';
 import 'data/local_repository.dart';
 import 'data/user_repository.dart';
 import 'data/worker_repository.dart';
-import 'data/department_repository.dart'; // NUEVO
+import 'data/department_repository.dart';
 import 'data/worker_service.dart';
 import 'data/department_service.dart';
 import 'data/local_service.dart';

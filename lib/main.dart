@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +21,9 @@ import 'utils/notification_utils.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await NotificationUtils.initialize();
+  if (!kIsWeb) {
+    await NotificationUtils.initialize();
+  }
 
   // Inicializar servicios
   await ServiceLocator().initialize();
@@ -64,7 +67,7 @@ class MyApp extends StatelessWidget {
               return _buildLoadingScreen();
             }
 
-            if (snapshot.hasData && snapshot.data == false) {
+            if (!kIsWeb && snapshot.hasData && snapshot.data == false) {
               // Mostrar onboarding si no lo ha visto
               return OnboardingScreen(
                 onComplete: () {
@@ -97,13 +100,15 @@ class MyApp extends StatelessWidget {
 
                     // ========== AGREGAR VERIFICACIÓN DE ACTUALIZACIONES ==========
                     // Esperar un poco para que la app termine de cargar
-                    Future.delayed(const Duration(seconds: 3), () {
-                      if (context.mounted) {
-                        final updateService = ServiceLocator().updateService;
-                        // Solo verificar una vez por día
-                        updateService.checkAndNotifyIfNeeded(context);
-                      }
-                    });
+                    if (!kIsWeb) {
+                      Future.delayed(const Duration(seconds: 3), () {
+                        if (context.mounted) {
+                          final updateService = ServiceLocator().updateService;
+                          // Solo verificar una vez por día
+                          updateService.checkAndNotifyIfNeeded(context);
+                        }
+                      });
+                    }
                   }
                 });
 

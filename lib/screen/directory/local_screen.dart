@@ -33,7 +33,6 @@ class LocalScreenState extends State<LocalScreen> {
   List<Map<String, dynamic>> _previewData = [];
   bool _isProcessingExcel = false;
 
-
   @override
   void initState() {
     super.initState();
@@ -74,15 +73,10 @@ class LocalScreenState extends State<LocalScreen> {
     return FloatingActionButton.extended(
       onPressed: _showAddLocalOptions,
       icon: const Icon(Icons.add, color: Colors.white),
-      label: const Text(
-        'Agregar',
-        style: TextStyle(color: Colors.white),
-      ),
+      label: const Text('Agregar', style: TextStyle(color: Colors.white)),
       backgroundColor: Colors.green[700],
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(30),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
     );
   }
 
@@ -122,10 +116,7 @@ class LocalScreenState extends State<LocalScreen> {
               const SizedBox(height: 8),
               const Text(
                 'Selecciona cómo deseas agregar',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
 
               const SizedBox(height: 24),
@@ -175,9 +166,7 @@ class LocalScreenState extends State<LocalScreen> {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -189,7 +178,7 @@ class LocalScreenState extends State<LocalScreen> {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 28),
@@ -210,10 +199,7 @@ class LocalScreenState extends State<LocalScreen> {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                     ),
                   ],
                 ),
@@ -329,7 +315,11 @@ class LocalScreenState extends State<LocalScreen> {
                       onTap: _downloadExcelTemplate,
                       child: Row(
                         children: [
-                          Icon(Icons.file_download, size: 18, color: Colors.green[700]),
+                          Icon(
+                            Icons.file_download,
+                            size: 18,
+                            color: Colors.green[700],
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Descargar plantilla de ejemplo',
@@ -373,7 +363,11 @@ class LocalScreenState extends State<LocalScreen> {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.preview, size: 16, color: Colors.green[700]),
+                                Icon(
+                                  Icons.preview,
+                                  size: 16,
+                                  color: Colors.green[700],
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -387,14 +381,18 @@ class LocalScreenState extends State<LocalScreen> {
                               ],
                             ),
                             const SizedBox(height: 8),
-                            Container(
+                            SizedBox(
                               height: 100,
                               child: ListView.builder(
-                                itemCount: _previewData.length > 5 ? 5 : _previewData.length,
+                                itemCount: _previewData.length > 5
+                                    ? 5
+                                    : _previewData.length,
                                 itemBuilder: (context, index) {
                                   final item = _previewData[index];
                                   return Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 2,
+                                    ),
                                     child: Text(
                                       '${index + 1}. ${item['nombre'] ?? 'Sin nombre'} - ${item['telefono'] ?? 'Sin teléfono'}',
                                       style: TextStyle(fontSize: 12),
@@ -412,11 +410,14 @@ class LocalScreenState extends State<LocalScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: _isProcessingExcel ? null : () => Navigator.pop(context),
+                  onPressed: _isProcessingExcel
+                      ? null
+                      : () => Navigator.pop(context),
                   child: const Text('Cancelar'),
                 ),
                 ElevatedButton.icon(
-                  onPressed: _isProcessingExcel || _selectedExcelFilePath == null
+                  onPressed:
+                      _isProcessingExcel || _selectedExcelFilePath == null
                       ? null
                       : () => _processExcelFile(context, setState),
                   icon: const Icon(Icons.cloud_upload, size: 18),
@@ -439,8 +440,12 @@ class LocalScreenState extends State<LocalScreen> {
     try {
       if (Platform.isAndroid) {
         final storagePermission = await Permission.storage.request();
-        if (!storagePermission.isGranted && !await Permission.manageExternalStorage.isGranted) {
-          _showSnackBar('Se necesitan permisos de almacenamiento para importar archivos.', isError: true);
+        if (!storagePermission.isGranted &&
+            !await Permission.manageExternalStorage.isGranted) {
+          _showSnackBar(
+            'Se necesitan permisos de almacenamiento para importar archivos.',
+            isError: true,
+          );
           return;
         }
       }
@@ -495,7 +500,10 @@ class LocalScreenState extends State<LocalScreen> {
   }
 
   // Procesar archivo Excel
-  Future<void> _processExcelFile(BuildContext context, StateSetter setState) async {
+  Future<void> _processExcelFile(
+    BuildContext context,
+    StateSetter setState,
+  ) async {
     if (_selectedExcelFilePath == null || _previewData.isEmpty) {
       _showSnackBar('No hay datos para importar', isError: true);
       return;
@@ -538,7 +546,9 @@ class LocalScreenState extends State<LocalScreen> {
       Navigator.pop(context);
 
       if (successCount > 0) {
-        _showSnackBar('✅ $successCount locales importados exitosamente${skippedCount > 0 ? ' ($skippedCount omitidos)' : ''}');
+        _showSnackBar(
+          '✅ $successCount locales importados exitosamente${skippedCount > 0 ? ' ($skippedCount omitidos)' : ''}',
+        );
         await localProvider.loadLocals(forceRefresh: true);
       } else {
         _showSnackBar('❌ No se pudo importar ningún local', isError: true);
@@ -555,8 +565,12 @@ class LocalScreenState extends State<LocalScreen> {
     try {
       if (Platform.isAndroid) {
         final storagePermission = await Permission.storage.request();
-        if (!storagePermission.isGranted && !await Permission.manageExternalStorage.isGranted) {
-          _showSnackBar('Se necesitan permisos de almacenamiento para descargar archivos.', isError: true);
+        if (!storagePermission.isGranted &&
+            !await Permission.manageExternalStorage.isGranted) {
+          _showSnackBar(
+            'Se necesitan permisos de almacenamiento para descargar archivos.',
+            isError: true,
+          );
           return;
         }
       }
@@ -572,7 +586,10 @@ class LocalScreenState extends State<LocalScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      _showSnackBar('❌ Error al generar plantilla: ${e.toString()}', isError: true);
+      _showSnackBar(
+        '❌ Error al generar plantilla: ${e.toString()}',
+        isError: true,
+      );
     }
   }
 
@@ -732,7 +749,10 @@ class LocalScreenState extends State<LocalScreen> {
                 _showSnackBar('❌ Error: ${localProvider.error}', isError: true);
               }
             },
-            child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Eliminar',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -845,39 +865,27 @@ class LocalScreenState extends State<LocalScreen> {
         ),
         // body: _buildBody(localProvider, isAdmin),
         body: Stack(
-  children: [
-    _buildBody(
-      localProvider,      
-      isAdmin,
-    ),
+          children: [
+            _buildBody(localProvider, isAdmin),
 
-    if (localProvider.loading &&
-    localProvider.hasLoaded) ...[
-  const ModalBarrier(
-    dismissible: false,
-    color: Colors.black54,
-  ),
-  const Center(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        CircularProgressIndicator(color : Colors.green),
-        SizedBox(height: 16),
-        Text(
-          "Eliminando locales...",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-          ),
+            if (localProvider.loading && localProvider.hasLoaded) ...[
+              const ModalBarrier(dismissible: false, color: Colors.black54),
+              const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: Colors.green),
+                    SizedBox(height: 16),
+                    Text(
+                      "🔄 Actualizando lista...",
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
         ),
-      ],
-    ),
-  ),
-]
-
-   
-  ],
-),
         floatingActionButton: _buildFloatingActionButton(isAdmin),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       ),
@@ -970,7 +978,10 @@ class LocalScreenState extends State<LocalScreen> {
                 onPressed: () => localProvider.loadLocals(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green[700],
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                 ),
               ),
           ],
@@ -1066,7 +1077,10 @@ class LocalScreenState extends State<LocalScreen> {
                 builder: (context, provider, child) {
                   if (provider.isOffline) {
                     return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.green[50],
                         borderRadius: BorderRadius.circular(12),
@@ -1200,11 +1214,7 @@ class LocalScreenState extends State<LocalScreen> {
                     if (localLite.hasPhone)
                       Row(
                         children: [
-                          Icon(
-                            Icons.phone,
-                            size: 14,
-                            color: Colors.green[600],
-                          ),
+                          Icon(Icons.phone, size: 14, color: Colors.green[600]),
                           const SizedBox(width: 4),
                           Text(
                             localLite.phone,
@@ -1392,7 +1402,10 @@ class LocalScreenState extends State<LocalScreen> {
                   return Column(
                     children: [
                       ElevatedButton.icon(
-                        icon: const Icon(Icons.cloud_download, color: Colors.white),
+                        icon: const Icon(
+                          Icons.cloud_download,
+                          color: Colors.white,
+                        ),
                         label: const Text('Sincronizar desde internet'),
                         onPressed: () => _syncLocals(provider),
                         style: ElevatedButton.styleFrom(
@@ -1417,8 +1430,11 @@ class LocalScreenState extends State<LocalScreen> {
 
                 if (isAdmin && _searchController.text.isEmpty) {
                   return ElevatedButton.icon(
-                    icon: const Icon(Icons.add,color: Colors.white),
-                    label: const Text('Agregar Primer Local',style: TextStyle(color: Colors.white)),
+                    icon: const Icon(Icons.add, color: Colors.white),
+                    label: const Text(
+                      'Agregar Primer Local',
+                      style: TextStyle(color: Colors.white),
+                    ),
                     onPressed: _showAddLocalOptions,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green[700],
@@ -1446,9 +1462,7 @@ class LocalScreenState extends State<LocalScreen> {
                   setState(() {});
                   provider.clearSearch();
                 },
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.green[700],
-                ),
+                style: TextButton.styleFrom(foregroundColor: Colors.green[700]),
               ),
           ],
         ),
@@ -1580,7 +1594,11 @@ class LocalScreenState extends State<LocalScreen> {
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        icon: const Icon(Icons.edit, size: 18, color: Colors.green),
+                        icon: const Icon(
+                          Icons.edit,
+                          size: 18,
+                          color: Colors.green,
+                        ),
                         label: const Text(
                           'Editar',
                           style: TextStyle(color: Colors.green),
@@ -1598,7 +1616,11 @@ class LocalScreenState extends State<LocalScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton.icon(
-                        icon: const Icon(Icons.delete, size: 18, color: Colors.white),
+                        icon: const Icon(
+                          Icons.delete,
+                          size: 18,
+                          color: Colors.white,
+                        ),
                         label: const Text(
                           'Eliminar',
                           style: TextStyle(color: Colors.white),
@@ -1640,7 +1662,7 @@ class LocalScreenState extends State<LocalScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, size: 20, color: color),

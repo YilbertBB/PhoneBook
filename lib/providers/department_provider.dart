@@ -95,21 +95,19 @@ class DepartmentProvider with ChangeNotifier {
       } else {
         _departments = response.data ?? [];
 
-// ORDENAR POR NOMBRE
-_departments.sort(
-  (a, b) => a.name.toLowerCase().compareTo(
-    b.name.toLowerCase(),
-  ),
-);
+        // ORDENAR POR NOMBRE
+        _departments.sort(
+          (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+        );
 
-_hasLoaded = true;
-_isOffline = false;
+        _hasLoaded = true;
+        _isOffline = false;
 
-// Convertir a modelos lite para lista
-_departmentLites.clear();
-_departmentLites.addAll(
-  _departments.map((dept) => DepartmentLite.fromDepartment(dept)),
-);
+        // Convertir a modelos lite para lista
+        _departmentLites.clear();
+        _departmentLites.addAll(
+          _departments.map((dept) => DepartmentLite.fromDepartment(dept)),
+        );
 
         // Actualizar estadísticas locales
         _updateLocalStats();

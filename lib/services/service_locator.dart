@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../db/app_database.dart';
 import '../utils/connectivity_manager.dart';
 import 'api/api_client.dart';
@@ -90,34 +92,37 @@ class ServiceLocator {
 
     // ========== FASE 3: SERVICIOS OFFLINE ==========
     _appDatabase = await AppDatabase.instance();
-    await _appDatabase.initializeDaos();
+    if (!kIsWeb) {
+      await _appDatabase.initializeDaos();
+    }
+
     _connectivityManager = ConnectivityManager();
 
-    _workerRepository = WorkerRepository(
+    _workerRepository = createWorkerRepository(
       apiClient: _apiClient,
       appDatabase: _appDatabase,
       connectivityManager: _connectivityManager,
     );
 
-    _departmentRepository = DepartmentRepository(
+    _departmentRepository = createDepartmentRepository(
       apiClient: _apiClient,
       appDatabase: _appDatabase,
       connectivityManager: _connectivityManager,
     );
 
-    _localRepository = LocalRepository(
+    _localRepository = createLocalRepository(
       apiClient: _apiClient,
       appDatabase: _appDatabase,
       connectivityManager: _connectivityManager,
     );
 
-    _efemerideRepository = EfemerideRepository(
+    _efemerideRepository = createEfemerideRepository(
       apiClient: _apiClient,
       appDatabase: _appDatabase,
       connectivityManager: _connectivityManager,
     );
 
-    _authRepository = AuthRepository(
+    _authRepository = createAuthRepository(
       apiClient: _apiClient,
       appDatabase: _appDatabase,
       connectivityManager: _connectivityManager,
@@ -125,7 +130,7 @@ class ServiceLocator {
       authService: _authService,
     );
 
-    _userRepository = UserRepository(
+    _userRepository = createUserRepository(
       appDatabase: _appDatabase,
       connectivityManager: _connectivityManager,
       userService: _userService,
@@ -189,8 +194,9 @@ class ServiceLocator {
 
   void dispose() {
     _apiClient.dispose();
-    _appDatabase.close();
-    // Agregar dispose del updateService
+    if (!kIsWeb) {
+      _appDatabase.close();
+    }
     _updateService.dispose();
   }
 }

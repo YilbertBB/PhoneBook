@@ -95,10 +95,8 @@ class LocalProvider with ChangeNotifier {
         _locals = response.data ?? [];
 
         _locals.sort(
-  (a, b) => a.name.toLowerCase().compareTo(
-    b.name.toLowerCase(),
-  ),
-);
+          (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+        );
 
         _hasLoaded = true;
         _isOffline = false;

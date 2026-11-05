@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../screen/directory/home_screen.dart';
 import 'package:provider/provider.dart';
@@ -974,42 +975,44 @@ class ConfigScreenState extends State<ConfigScreen> {
 
                   const SizedBox(height: 8),
 
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
-                    child: Text(
-                      'PREFERENCIAS',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey,
-                        letterSpacing: 1,
+                  if (!kIsWeb) ...[
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
+                      child: Text(
+                        'PREFERENCIAS',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                          letterSpacing: 1,
+                        ),
                       ),
                     ),
-                  ),
-                  Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        SwitchListTile(
-                          title: const Text('Notificaciones'),
-                          subtitle: const Text(
-                            'Recibir notificaciones importantes',
+                    Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          SwitchListTile(
+                            title: const Text('Notificaciones'),
+                            subtitle: const Text(
+                              'Recibir notificaciones importantes',
+                            ),
+                            value: _notifications,
+                            onChanged: (value) {
+                              setState(() {
+                                _notifications = value;
+                              });
+                            },
+                            activeThumbColor: Colors.blue[700],
                           ),
-                          value: _notifications,
-                          onChanged: (value) {
-                            setState(() {
-                              _notifications = value;
-                            });
-                          },
-                          activeThumbColor: Colors.blue[700],
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
 
                   const Padding(
                     padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
@@ -1100,111 +1103,120 @@ class ConfigScreenState extends State<ConfigScreen> {
                           trailing: const Icon(Icons.chevron_right),
                           onTap: _showPrivacyPolicy,
                         ),
-                        const Divider(height: 1, indent: 16),
-                        ListTile(
-                          leading: const Icon(
-                            Icons.settings_cell,
-                            color: Colors.blue,
+                        if (!kIsWeb) ...[
+                          const Divider(height: 1, indent: 16),
+                          ListTile(
+                            leading: const Icon(
+                              Icons.settings_cell,
+                              color: Colors.blue,
+                            ),
+                            title: const Text('Configuración de Red'),
+                            subtitle: const Text(
+                              'Configuración APN y conexión corporativa',
+                            ),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const NetworkConfigScreen(),
+                                ),
+                              );
+                            },
                           ),
-                          title: const Text('Configuración de Red'),
-                          subtitle: const Text(
-                            'Configuración APN y conexión corporativa',
-                          ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const NetworkConfigScreen(),
-                              ),
-                            );
-                          },
-                        ),
+                        ],
                       ],
                     ),
                   ),
 
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
-                    child: Text(
-                      'ACTUALIZACIONES',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                  ),
-                  Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: ListTile(
-                      leading: Icon(
-                        Icons.update,
-                        color: _updateAvailable ? Colors.green : Colors.blue,
-                      ),
-                      title: const Text('Versión de la App'),
-                      subtitle: Text('Versión $_appVersion'),
-                      trailing: _updateAvailable
-                          ? const Chip(
-                              label: Text('NUEVO'),
-                              backgroundColor: Colors.green,
-                              labelStyle: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )
-                          : const Icon(Icons.check_circle, color: Colors.green),
-                    ),
-                  ),
-
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: ElevatedButton.icon(
-                      onPressed: _checkingForUpdates ? null : _checkForUpdates,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[700],
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 56),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 2,
-                      ),
-                      icon: _checkingForUpdates
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Icon(
-                              _updateAvailable
-                                  ? Icons.download
-                                  : Icons.system_update,
-                              size: 24,
-                            ),
-                      label: Text(
-                        _checkingForUpdates
-                            ? 'VERIFICANDO...'
-                            : _updateAvailable
-                            ? 'DESCARGAR ACTUALIZACIÓN'
-                            : 'BUSCAR ACTUALIZACIONES',
-                        style: const TextStyle(
-                          fontSize: 16,
+                  if (!kIsWeb) ...[
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
+                      child: Text(
+                        'ACTUALIZACIONES',
+                        style: TextStyle(
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                          letterSpacing: 1,
                         ),
                       ),
                     ),
-                  ),
+                    Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListTile(
+                        leading: Icon(
+                          Icons.update,
+                          color: _updateAvailable ? Colors.green : Colors.blue,
+                        ),
+                        title: const Text('Versión de la App'),
+                        subtitle: Text('Versión $_appVersion'),
+                        trailing: _updateAvailable
+                            ? const Chip(
+                                label: Text('NUEVO'),
+                                backgroundColor: Colors.green,
+                                labelStyle: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                              ),
+                      ),
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: ElevatedButton.icon(
+                        onPressed: _checkingForUpdates
+                            ? null
+                            : _checkForUpdates,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue[700],
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(double.infinity, 56),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 2,
+                        ),
+                        icon: _checkingForUpdates
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Icon(
+                                _updateAvailable
+                                    ? Icons.download
+                                    : Icons.system_update,
+                                size: 24,
+                              ),
+                        label: Text(
+                          _checkingForUpdates
+                              ? 'VERIFICANDO...'
+                              : _updateAvailable
+                              ? 'DESCARGAR ACTUALIZACIÓN'
+                              : 'BUSCAR ACTUALIZACIONES',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                   SizedBox(height: 40),
                   Center(
                     child: Column(

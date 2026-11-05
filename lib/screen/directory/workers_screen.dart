@@ -27,6 +27,10 @@ class WorkersScreen extends StatefulWidget {
 
 class WorkersScreenState extends State<WorkersScreen> {
   final TextEditingController _searchController = TextEditingController();
+
+  // Filtro por departamento/área
+  int? _selectedDepartmentId;
+
   final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey =
       GlobalKey<ScaffoldMessengerState>();
   final ScrollController _scrollController = ScrollController();
@@ -154,15 +158,10 @@ class WorkersScreenState extends State<WorkersScreen> {
     return FloatingActionButton.extended(
       onPressed: _showAddWorkerOptions,
       icon: const Icon(Icons.add, color: Colors.white),
-      label: const Text(
-        'Agregar',
-        style: TextStyle(color: Colors.white),
-      ),
+      label: const Text('Agregar', style: TextStyle(color: Colors.white)),
       backgroundColor: Colors.blue[700],
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(30),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
     );
   }
 
@@ -202,10 +201,7 @@ class WorkersScreenState extends State<WorkersScreen> {
               const SizedBox(height: 8),
               const Text(
                 'Selecciona cómo deseas agregar',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
 
               const SizedBox(height: 24),
@@ -255,9 +251,7 @@ class WorkersScreenState extends State<WorkersScreen> {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -269,7 +263,7 @@ class WorkersScreenState extends State<WorkersScreen> {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 28),
@@ -290,10 +284,7 @@ class WorkersScreenState extends State<WorkersScreen> {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                     ),
                   ],
                 ),
@@ -409,7 +400,11 @@ class WorkersScreenState extends State<WorkersScreen> {
                       onTap: _downloadExcelTemplate,
                       child: Row(
                         children: [
-                          Icon(Icons.file_download, size: 18, color: Colors.blue[700]),
+                          Icon(
+                            Icons.file_download,
+                            size: 18,
+                            color: Colors.blue[700],
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Descargar plantilla de ejemplo',
@@ -453,7 +448,11 @@ class WorkersScreenState extends State<WorkersScreen> {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.preview, size: 16, color: Colors.blue[700]),
+                                Icon(
+                                  Icons.preview,
+                                  size: 16,
+                                  color: Colors.blue[700],
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -467,14 +466,18 @@ class WorkersScreenState extends State<WorkersScreen> {
                               ],
                             ),
                             const SizedBox(height: 8),
-                            Container(
+                            SizedBox(
                               height: 100,
                               child: ListView.builder(
-                                itemCount: _previewData.length > 5 ? 5 : _previewData.length,
+                                itemCount: _previewData.length > 5
+                                    ? 5
+                                    : _previewData.length,
                                 itemBuilder: (context, index) {
                                   final item = _previewData[index];
                                   return Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 2,
+                                    ),
                                     child: Text(
                                       '${index + 1}. ${item['nombre'] ?? 'Sin nombre'} - ${item['carnet'] ?? 'Sin carnet'}',
                                       style: TextStyle(fontSize: 12),
@@ -492,11 +495,14 @@ class WorkersScreenState extends State<WorkersScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: _isProcessingExcel ? null : () => Navigator.pop(context),
+                  onPressed: _isProcessingExcel
+                      ? null
+                      : () => Navigator.pop(context),
                   child: const Text('Cancelar'),
                 ),
                 ElevatedButton.icon(
-                  onPressed: _isProcessingExcel || _selectedExcelFilePath == null
+                  onPressed:
+                      _isProcessingExcel || _selectedExcelFilePath == null
                       ? null
                       : () => _processExcelFile(context, setState),
                   icon: const Icon(Icons.cloud_upload, size: 18),
@@ -519,8 +525,12 @@ class WorkersScreenState extends State<WorkersScreen> {
     try {
       if (Platform.isAndroid) {
         final storagePermission = await Permission.storage.request();
-        if (!storagePermission.isGranted && !await Permission.manageExternalStorage.isGranted) {
-          _showSnackBar('Se necesitan permisos de almacenamiento para importar archivos.', isError: true);
+        if (!storagePermission.isGranted &&
+            !await Permission.manageExternalStorage.isGranted) {
+          _showSnackBar(
+            'Se necesitan permisos de almacenamiento para importar archivos.',
+            isError: true,
+          );
           return;
         }
       }
@@ -579,7 +589,10 @@ class WorkersScreenState extends State<WorkersScreen> {
   }
 
   // Procesar archivo Excel
-  Future<void> _processExcelFile(BuildContext context, StateSetter setState) async {
+  Future<void> _processExcelFile(
+    BuildContext context,
+    StateSetter setState,
+  ) async {
     if (_selectedExcelFilePath == null || _previewData.isEmpty) {
       _showSnackBar('No hay datos para importar', isError: true);
       return;
@@ -590,7 +603,10 @@ class WorkersScreenState extends State<WorkersScreen> {
     });
 
     try {
-      final workerProvider = Provider.of<WorkerProvider>(context, listen: false);
+      final workerProvider = Provider.of<WorkerProvider>(
+        context,
+        listen: false,
+      );
       final departmentProvider = Provider.of<DepartmentProvider>(
         context,
         listen: false,
@@ -616,7 +632,8 @@ class WorkersScreenState extends State<WorkersScreen> {
               : rawLastName;
 
           Department? department;
-          if (data['departamento'] != null && data['departamento'].toString().isNotEmpty) {
+          if (data['departamento'] != null &&
+              data['departamento'].toString().isNotEmpty) {
             final deptName = data['departamento'].toString().trim();
             try {
               final dept = departmentProvider.departments.firstWhere(
@@ -637,11 +654,7 @@ class WorkersScreenState extends State<WorkersScreen> {
               final loc = localProvider.locals.firstWhere(
                 (l) => l.name.toLowerCase() == localName.toLowerCase(),
               );
-              local = Local(
-                id: loc.id,
-                name: loc.name,
-                phone: loc.phone,
-              );
+              local = Local(id: loc.id, name: loc.name, phone: loc.phone);
             } catch (_) {}
           }
 
@@ -709,8 +722,12 @@ class WorkersScreenState extends State<WorkersScreen> {
     try {
       if (Platform.isAndroid) {
         final storagePermission = await Permission.storage.request();
-        if (!storagePermission.isGranted && !await Permission.manageExternalStorage.isGranted) {
-          _showSnackBar('Se necesitan permisos de almacenamiento para descargar archivos.', isError: true);
+        if (!storagePermission.isGranted &&
+            !await Permission.manageExternalStorage.isGranted) {
+          _showSnackBar(
+            'Se necesitan permisos de almacenamiento para descargar archivos.',
+            isError: true,
+          );
           return;
         }
       }
@@ -726,7 +743,10 @@ class WorkersScreenState extends State<WorkersScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      _showSnackBar('❌ Error al generar plantilla: ${e.toString()}', isError: true);
+      _showSnackBar(
+        '❌ Error al generar plantilla: ${e.toString()}',
+        isError: true,
+      );
     }
   }
 
@@ -924,7 +944,10 @@ class WorkersScreenState extends State<WorkersScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
             onPressed: () => _handleDeleteWorker(worker.id, workerProvider),
-            child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Eliminar',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -1132,7 +1155,11 @@ class WorkersScreenState extends State<WorkersScreen> {
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        icon: const Icon(Icons.edit, size: 18, color: Colors.blue),
+                        icon: const Icon(
+                          Icons.edit,
+                          size: 18,
+                          color: Colors.blue,
+                        ),
                         label: const Text(
                           'Editar',
                           style: TextStyle(color: Colors.blue),
@@ -1150,7 +1177,11 @@ class WorkersScreenState extends State<WorkersScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton.icon(
-                        icon: const Icon(Icons.delete, size: 18, color: Colors.white),
+                        icon: const Icon(
+                          Icons.delete,
+                          size: 18,
+                          color: Colors.white,
+                        ),
                         label: const Text(
                           'Eliminar',
                           style: TextStyle(color: Colors.white),
@@ -1339,7 +1370,10 @@ class WorkersScreenState extends State<WorkersScreen> {
                   onPressed: () => _syncWorkers(provider),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue[700],
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -1352,11 +1386,17 @@ class WorkersScreenState extends State<WorkersScreen> {
           else
             ElevatedButton.icon(
               icon: const Icon(Icons.refresh, color: Colors.white),
-              label: const Text('Reintentar', style: TextStyle(color: Colors.white)),
+              label: const Text(
+                'Reintentar',
+                style: TextStyle(color: Colors.white),
+              ),
               onPressed: () => provider.loadWorkers(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue[700],
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
               ),
             ),
         ],
@@ -1412,12 +1452,18 @@ class WorkersScreenState extends State<WorkersScreen> {
             const SizedBox(height: 24),
             if (isAdmin && _searchController.text.isEmpty)
               ElevatedButton.icon(
-                icon: const Icon(Icons.add,color: Colors.white),
-                label: const Text('Agregar Primer Trabajador',style: TextStyle(color: Colors.white)),
+                icon: const Icon(Icons.add, color: Colors.white),
+                label: const Text(
+                  'Agregar Primer Trabajador',
+                  style: TextStyle(color: Colors.white),
+                ),
                 onPressed: _showAddWorkerOptions,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue[700],
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 14,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -1538,7 +1584,7 @@ class WorkersScreenState extends State<WorkersScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, size: 20, color: color),
@@ -1588,7 +1634,7 @@ class WorkersScreenState extends State<WorkersScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, size: 20, color: color),
@@ -1936,39 +1982,27 @@ class WorkersScreenState extends State<WorkersScreen> {
         ),
         // body: _buildBody(workerProvider, isAdmin),
         body: Stack(
-  children: [
-    _buildBody(
-      workerProvider,
-      
-      isAdmin,
-    ),
+          children: [
+            _buildBody(workerProvider, isAdmin),
 
-    if (workerProvider.loading &&
-    workerProvider.hasLoaded)
-      ...[
-  const ModalBarrier(
-    dismissible: false,
-    color: Colors.black54,
-  ),
-  const Center(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        CircularProgressIndicator(color : Colors.blue),
-        SizedBox(height: 16),
-        Text(
-          "Eliminando trabajador...",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-          ),
+            if (workerProvider.loading && workerProvider.hasLoaded) ...[
+              const ModalBarrier(dismissible: false, color: Colors.black54),
+              const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: Colors.blue),
+                    SizedBox(height: 16),
+                    Text(
+                      "🔄 Actualizando lista...",
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
         ),
-      ],
-    ),
-  ),
-]
-  ],
-),
         floatingActionButton: _buildFloatingActionButton(isAdmin),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       ),
@@ -2033,6 +2067,12 @@ class WorkersScreenState extends State<WorkersScreen> {
               ),
             ),
           ),
+        ),
+
+        Consumer<DepartmentProvider>(
+          builder: (context, departmentProvider, _) {
+            return _buildDepartmentFilter(departmentProvider);
+          },
         ),
 
         // Contador optimizado
@@ -2111,6 +2151,91 @@ class WorkersScreenState extends State<WorkersScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDepartmentFilter(DepartmentProvider departmentProvider) {
+    final departments = departmentProvider.departments;
+    if (departments.isEmpty) return const SizedBox.shrink();
+
+    return SizedBox(
+      height: 50,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FilterChip(
+                label: const Text('Todos'),
+                selected: _selectedDepartmentId == null,
+                onSelected: (_) {
+                  setState(() => _selectedDepartmentId = null);
+                  Provider.of<WorkerProvider>(
+                    context,
+                    listen: false,
+                  ).filterByDepartment(null);
+                },
+                selectedColor: Colors.blue[100],
+                checkmarkColor: Colors.blue[700],
+                labelStyle: TextStyle(
+                  color: _selectedDepartmentId == null
+                      ? Colors.blue[700]
+                      : Colors.grey[700],
+                  fontWeight: _selectedDepartmentId == null
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                ),
+                backgroundColor: Colors.grey[100],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(
+                    color: _selectedDepartmentId == null
+                        ? Colors.blue[700]!
+                        : Colors.transparent,
+                  ),
+                ),
+              ),
+            ),
+            ...departments.map((dept) {
+              final isSelected = _selectedDepartmentId == dept.id;
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: FilterChip(
+                  label: Text(dept.name),
+                  selected: isSelected,
+                  onSelected: (_) {
+                    final newValue = isSelected ? null : dept.id;
+                    setState(() => _selectedDepartmentId = newValue);
+                    Provider.of<WorkerProvider>(
+                      context,
+                      listen: false,
+                    ).filterByDepartment(newValue);
+                  },
+                  selectedColor: Colors.blue[100],
+                  checkmarkColor: Colors.blue[700],
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.blue[700] : Colors.grey[700],
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
+                  backgroundColor: Colors.grey[100],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: BorderSide(
+                      color: isSelected
+                          ? Colors.blue[700]!
+                          : Colors.transparent,
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
     );
   }
 

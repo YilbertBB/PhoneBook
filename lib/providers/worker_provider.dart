@@ -25,6 +25,9 @@ class WorkerProvider with ChangeNotifier {
   String _error = '';
   String _searchQuery = '';
 
+  // 🔹 NUEVO: filtro por departamento
+  int? _filterDepartmentId;
+
   // OFFLINE
   bool _isOffline = false;
   bool _syncing = false;
@@ -34,11 +37,14 @@ class WorkerProvider with ChangeNotifier {
   // GETTERS
   List<Worker> get workers => _allWorkers;
 
+  // 🔹 NUEVO: helper para saber si hay filtros activos
+  bool get _hasActiveFilters =>
+      _searchQuery.trim().isNotEmpty || _filterDepartmentId != null;
+
   // Para UI - usa WorkerLite cuando sea posible
+  // 🔹 CAMBIADO: usa _hasActiveFilters en vez de "isEmpty" (bug si filtro da 0)
   List<WorkerLite> get workersLite =>
-      _filteredWorkersLite.isEmpty && _searchQuery.isEmpty
-      ? _allWorkersLite
-      : _filteredWorkersLite;
+      _hasActiveFilters ? _filteredWorkersLite : _allWorkersLite;
 
   List<WorkerLite> get allWorkersLite => _allWorkersLite;
   bool get loading => _loading;
@@ -47,6 +53,9 @@ class WorkerProvider with ChangeNotifier {
   String get error => _error;
   int get totalWorkers => _allWorkers.length;
   int get filteredCount => _filteredWorkersLite.length;
+
+  // 🔹 NUEVO: getter público del filtro por departamento
+  int? get filterDepartmentId => _filterDepartmentId;
 
   // PAGINACIÓN
   int get currentPage => _currentPage;
@@ -100,7 +109,9 @@ class WorkerProvider with ChangeNotifier {
 
         _hasLoaded = true;
         _isOffline = false;
-        _applySearchFilter();
+
+        // 🔹 CAMBIADO: aplicar filtros combinados (búsqueda + departamento)
+        _applyFilters();
 
         // Actualizar estadísticas locales
         await _updateLocalStats();
@@ -146,9 +157,9 @@ class WorkerProvider with ChangeNotifier {
 
       _isLoadingMore = false;
 
-      // Aplicar filtro de búsqueda si existe
-      if (_searchQuery.isNotEmpty) {
-        _applySearchFilter();
+      // 🔹 CAMBIADO: recalcular con filtros combinados
+      if (_hasActiveFilters) {
+        _applyFilters();
       }
 
       notifyListeners();
@@ -162,19 +173,18 @@ class WorkerProvider with ChangeNotifier {
   }
 
   // Obtener trabajadores visibles actualmente (paginados)
+  // 🔹 CAMBIADO: usa _hasActiveFilters y la fuente correcta
   List<WorkerLite> get visibleWorkers {
     if (_allWorkersLite.isEmpty) return [];
 
-    // final startIndex = 0;
+    final workersToShow = _hasActiveFilters
+        ? _filteredWorkersLite
+        : _allWorkersLite;
+
     final endIndex = _hasMore
         ? (_currentPage + 1) * _pageSize
-        : _allWorkersLite.length;
+        : workersToShow.length;
 
-    final workersToShow = _filteredWorkersLite.isEmpty && _searchQuery.isEmpty
-        ? _allWorkersLite
-        : _filteredWorkersLite;
-
-    // Limitar a lo que cabe en la página actual
     return workersToShow.sublist(
       0,
       endIndex > workersToShow.length ? workersToShow.length : endIndex,
@@ -185,29 +195,53 @@ class WorkerProvider with ChangeNotifier {
   void searchWorkers(String query) {
     _searchQuery = query;
     _currentPage = 0; // Resetear a primera página al buscar
-    _applySearchFilter();
+    _applyFilters(); // 🔹 CAMBIADO
     notifyListeners();
   }
 
-  void _applySearchFilter() {
-    if (_searchQuery.isEmpty) {
+  // 🔹 NUEVO: filtro real por departamento
+  void filterByDepartment(int? departmentId) {
+    if (_filterDepartmentId == departmentId) return;
+
+    _filterDepartmentId = departmentId;
+    _currentPage = 0; // Resetear paginación al cambiar filtro
+    _applyFilters();
+    notifyListeners();
+  }
+
+  // 🔹 NUEVO: aplica búsqueda + filtro de departamento combinados
+  void _applyFilters() {
+    final query = _searchQuery.trim().toLowerCase();
+    final deptId = _filterDepartmentId;
+
+    // Sin filtros → todos
+    if (query.isEmpty && deptId == null) {
       _filteredWorkersLite = _allWorkersLite;
       _hasMore = _allWorkersLite.length > _pageSize;
-    } else {
-      final query = _searchQuery.toLowerCase();
-      final filtered = _allWorkersLite.where((worker) {
+      return;
+    }
+
+    final filtered = _allWorkersLite.where((worker) {
+      // Filtro por departamento
+      if (deptId != null && worker.departamentoID != deptId) {
+        return false;
+      }
+      // Filtro por texto (nombre, carnet, teléfono)
+      if (query.isNotEmpty) {
         final fullName = worker.fullName.toLowerCase();
         final carnet = worker.carnetID.toLowerCase();
         final phone = worker.phone.toLowerCase();
+        if (!fullName.contains(query) &&
+            !carnet.contains(query) &&
+            !phone.contains(query)) {
+          return false;
+        }
+      }
+      return true;
+    }).toList();
 
-        return fullName.contains(query) ||
-            carnet.contains(query) ||
-            phone.contains(query);
-      }).toList();
-
-      _filteredWorkersLite = filtered;
-      _hasMore = filtered.length > _pageSize;
-    }
+    _filteredWorkersLite = filtered;
+    _hasMore = filtered.length > _pageSize;
   }
 
   // Obtener trabajador completo por ID
@@ -223,7 +257,7 @@ class WorkerProvider with ChangeNotifier {
         // Agregar a lista local si se encontró
         _allWorkers.add(response.data!);
         _allWorkersLite.add(WorkerLite.fromWorker(response.data!));
-        _applySearchFilter();
+        _applyFilters(); // 🔹 CAMBIADO
         notifyListeners();
         return response.data;
       }
@@ -292,7 +326,9 @@ class WorkerProvider with ChangeNotifier {
     debugPrint('[WorkerProvider][CREATE] Requested: ${_workerLog(worker)}');
 
     if (_loading) {
-      debugPrint('[WorkerProvider][CREATE] Ignored because provider is loading');
+      debugPrint(
+        '[WorkerProvider][CREATE] Ignored because provider is loading',
+      );
       return false;
     }
 
@@ -316,7 +352,7 @@ class WorkerProvider with ChangeNotifier {
       } else {
         _allWorkers.add(response.data!);
         _allWorkersLite.add(WorkerLite.fromWorker(response.data!));
-        _applySearchFilter();
+        _applyFilters(); // 🔹 CAMBIADO
         _isOffline = false;
         debugPrint(
           '[WorkerProvider][CREATE] Success. totalWorkers=${_allWorkers.length} visible=${visibleWorkers.length}',
@@ -363,7 +399,7 @@ class WorkerProvider with ChangeNotifier {
         if (index != -1) {
           _allWorkers[index] = response.data!;
           _allWorkersLite[index] = WorkerLite.fromWorker(response.data!);
-          _applySearchFilter();
+          _applyFilters(); // 🔹 CAMBIADO
           debugPrint('[WorkerProvider][EDIT] Updated local index=$index');
         } else {
           debugPrint(
@@ -404,7 +440,7 @@ class WorkerProvider with ChangeNotifier {
       } else {
         _allWorkers.removeWhere((w) => w.id == id);
         _allWorkersLite.removeWhere((w) => w.id == id);
-        _applySearchFilter();
+        _applyFilters(); // 🔹 CAMBIADO
         _isOffline = false;
         notifyListeners();
         return true;
@@ -419,11 +455,20 @@ class WorkerProvider with ChangeNotifier {
 
   // ============ UTILIDADES ============
 
+  // 🔹 CAMBIADO: respeta el filtro de departamento activo
   void clearSearch() {
     _searchQuery = '';
-    _filteredWorkersLite = _allWorkersLite;
     _currentPage = 0;
-    _hasMore = _allWorkersLite.length > _pageSize;
+    _applyFilters();
+    notifyListeners();
+  }
+
+  // 🔹 NUEVO: limpia búsqueda Y filtro de departamento
+  void clearAllFilters() {
+    _searchQuery = '';
+    _filterDepartmentId = null;
+    _currentPage = 0;
+    _applyFilters();
     notifyListeners();
   }
 
@@ -474,6 +519,11 @@ class WorkerProvider with ChangeNotifier {
       'localDataCount': _localDataCount,
       'currentPage': _currentPage,
       'hasMore': _hasMore,
+      // 🔹 NUEVO: estado de filtros
+      'filteredCount': _hasActiveFilters
+          ? _filteredWorkersLite.length
+          : _allWorkersLite.length,
+      'activeFilterDept': _filterDepartmentId,
     };
   }
 
@@ -501,8 +551,6 @@ class WorkerProvider with ChangeNotifier {
         .where((worker) => worker.departamentoID == departmentId)
         .toList();
 
-    // Aplicar paginación
-    // final startIndex = 0;
     final endIndex = (_currentPage + 1) * _pageSize;
     return endIndex > filtered.length
         ? filtered
@@ -515,7 +563,6 @@ class WorkerProvider with ChangeNotifier {
         .where((worker) => worker.localId == localId)
         .toList();
 
-    // final startIndex = 0;
     final endIndex = (_currentPage + 1) * _pageSize;
     return endIndex > filtered.length
         ? filtered
