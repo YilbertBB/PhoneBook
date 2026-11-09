@@ -50,7 +50,6 @@ class WorkersScreenState extends State<WorkersScreen> {
   static const Color _textMuted = Color(0xFF718096);
   static const Color _success = Color(0xFF159B72);
   static const Color _warning = Color(0xFFE49A27);
-  static const Color _danger = Color(0xFFD94B4B);
 
   @override
   void initState() {
@@ -1004,218 +1003,328 @@ class WorkersScreenState extends State<WorkersScreen> {
   // ============ MÉTODOS DE DETALLES ============
 
   void _showWorkerDetails(Worker worker, bool isAdmin) {
+    const primary = Color(0xFF1769AA);
+    const primaryDark = Color(0xFF104C80);
+    const textDark = Color(0xFF243447);
+    const textMuted = Color(0xFF718096);
+    const border = Color(0xFFE4EAF2);
+    const background = Color(0xFFF4F7FB);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.92,
         ),
-        child: SingleChildScrollView(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: SafeArea(
+          top: false,
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Handle para arrastrar
-              Center(
+              // Indicador de arrastre
+              Padding(
+                padding: const EdgeInsets.only(top: 12, bottom: 8),
                 child: Container(
-                  width: 40,
-                  height: 4,
+                  width: 42,
+                  height: 5,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
+                    color: const Color(0xFFD8E0EA),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
 
-              // Header con avatar
-              Center(
-                child: Column(
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.blue[100],
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          worker.initials,
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue[700],
-                          ),
+              // Contenido desplazable
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(22, 12, 22, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Encabezado del trabajador
+                      Center(
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 92,
+                              height: 92,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [primary, primaryDark],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: primary.withValues(alpha: 0.22),
+                                    blurRadius: 18,
+                                    offset: const Offset(0, 7),
+                                  ),
+                                ],
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                worker.initials,
+                                style: const TextStyle(
+                                  fontSize: 29,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              worker.fullName,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 23,
+                                fontWeight: FontWeight.w800,
+                                color: textDark,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 13,
+                                vertical: 7,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEAF3FC),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.badge_outlined,
+                                    size: 15,
+                                    color: primary,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Carnet: ${worker.carnetID}',
+                                    style: const TextStyle(
+                                      color: primaryDark,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      worker.fullName,
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
+
+                      const SizedBox(height: 28),
+
+                      // Título de sección
+                      const Row(
+                        children: [
+                          Icon(
+                            Icons.contact_page_outlined,
+                            color: primary,
+                            size: 19,
+                          ),
+                          SizedBox(width: 9),
+                          Text(
+                            'Información del trabajador',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: textDark,
+                            ),
+                          ),
+                        ],
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Carnet: ${worker.carnetID}',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-              ),
 
-              const SizedBox(height: 24),
-              Divider(color: Colors.grey[200]),
+                      const SizedBox(height: 14),
 
-              // Información detallada
-              _buildDetailSection(
-                icon: Icons.phone,
-                label: 'Teléfono',
-                value: worker.phone.isNotEmpty ? worker.phone : 'No disponible',
-                color: Colors.blue[700]!,
-              ),
-
-              if (worker.address.isNotEmpty)
-                _buildDetailSection(
-                  icon: Icons.home,
-                  label: 'Dirección',
-                  value: worker.address,
-                  color: Colors.green[700]!,
-                ),
-
-              if (worker.hasBirthday)
-                _buildDetailSection(
-                  icon: Icons.cake,
-                  label: 'Fecha de Cumpleaños',
-                  value: worker.formattedBirthday,
-                  color: Colors.pink[700]!,
-                ),
-
-              if (worker.hasDepartment)
-                _buildClickableDetail(
-                  icon: Icons.work,
-                  label: 'Departamento',
-                  value: worker.department!.name,
-                  color: Colors.orange[700]!,
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showDepartmentDetails(worker.department!.id);
-                  },
-                ),
-
-              if (worker.hasLocal)
-                _buildClickableDetail(
-                  icon: Icons.business,
-                  label: 'Local',
-                  value: worker.local!.name,
-                  color: Colors.green[700]!,
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showLocalDetails(worker.local!.id);
-                  },
-                ),
-
-              const SizedBox(height: 20),
-
-              // Acciones de contacto
-              if (worker.phone.isNotEmpty) ...[
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildContactAction(
-                        Icons.phone,
-                        'Llamar',
-                        Colors.green,
-                        () {
-                          Navigator.pop(context);
-                          _makePhoneCall(worker.phone);
-                        },
+                      // Teléfono
+                      _buildDetailSection(
+                        icon: Icons.phone_outlined,
+                        label: 'Teléfono',
+                        value: worker.phone.isNotEmpty
+                            ? worker.phone
+                            : 'No disponible',
+                        color: primary,
                       ),
-                      _buildContactAction(
-                        Icons.copy,
-                        'Copiar',
-                        Colors.orange,
-                        () {
-                          Navigator.pop(context);
-                          _copyPhoneNumber(worker.phone);
-                        },
-                      ),
+
+                      // Dirección
+                      if (worker.address.isNotEmpty)
+                        _buildDetailSection(
+                          icon: Icons.location_on_outlined,
+                          label: 'Dirección',
+                          value: worker.address,
+                          color: const Color(0xFF159B72),
+                        ),
+
+                      // Cumpleaños
+                      if (worker.hasBirthday)
+                        _buildDetailSection(
+                          icon: Icons.cake_outlined,
+                          label: 'Fecha de cumpleaños',
+                          value: worker.formattedBirthday,
+                          color: const Color(0xFFD85B83),
+                        ),
+
+                      // Departamento
+                      if (worker.hasDepartment)
+                        _buildClickableDetail(
+                          icon: Icons.account_balance_outlined,
+                          label: 'Departamento',
+                          value: worker.department!.name,
+                          color: const Color(0xFFE49A27),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _showDepartmentDetails(worker.department!.id);
+                          },
+                        ),
+
+                      // Local
+                      if (worker.hasLocal)
+                        _buildClickableDetail(
+                          icon: Icons.business_outlined,
+                          label: 'Local',
+                          value: worker.local!.name,
+                          color: const Color(0xFF159B72),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _showLocalDetails(worker.local!.id);
+                          },
+                        ),
+
+                      const SizedBox(height: 20),
+
+                      // Acciones de contacto
+                      if (worker.phone.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: background,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: border),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Contacto rápido',
+                                style: TextStyle(
+                                  color: textDark,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildContactAction(
+                                      Icons.call_outlined,
+                                      'Llamar',
+                                      const Color(0xFF159B72),
+                                      () {
+                                        Navigator.pop(context);
+                                        _makePhoneCall(worker.phone);
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _buildContactAction(
+                                      Icons.copy_rounded,
+                                      'Copiar',
+                                      const Color(0xFFE49A27),
+                                      () {
+                                        Navigator.pop(context);
+                                        _copyPhoneNumber(worker.phone);
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                      ],
+
+                      // Acciones administrativas
+                      if (isAdmin) ...[
+                        const Divider(color: border, height: 25),
+                        const Text(
+                          'Administración',
+                          style: TextStyle(
+                            color: textMuted,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.7,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                icon: const Icon(Icons.edit_outlined, size: 18),
+                                label: const Text('Editar'),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  _showEditWorkerDialog(worker);
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: primary,
+                                  side: const BorderSide(color: primary),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 15,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(13),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  size: 18,
+                                ),
+                                label: const Text('Eliminar'),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  _showDeleteConfirmation(worker);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFD94B4B),
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 15,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(13),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
-              ],
-
-              // Acciones administrativas
-              if (isAdmin) ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        icon: const Icon(
-                          Icons.edit,
-                          size: 18,
-                          color: Colors.blue,
-                        ),
-                        label: const Text(
-                          'Editar',
-                          style: TextStyle(color: Colors.blue),
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context);
-                          _showEditWorkerDialog(worker);
-                        },
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          side: const BorderSide(color: Colors.blue),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        icon: const Icon(
-                          Icons.delete,
-                          size: 18,
-                          color: Colors.white,
-                        ),
-                        label: const Text(
-                          'Eliminar',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context);
-                          _showDeleteConfirmation(worker);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-
-              SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
+              ),
             ],
           ),
         ),
@@ -1223,86 +1332,224 @@ class WorkersScreenState extends State<WorkersScreen> {
     );
   }
 
-  void _showWorkerDetailsFromLite(WorkerLite workerLite, bool isAdmin) async {
-    final workerProvider = Provider.of<WorkerProvider>(context, listen: false);
+  Future<void> _showWorkerDetailsFromLite(
+    WorkerLite workerLite,
+    bool isAdmin,
+  ) async {
+    try {
+      final workerProvider = Provider.of<WorkerProvider>(
+        context,
+        listen: false,
+      );
 
-    final worker = await workerProvider.getWorkerById(workerLite.id);
+      final worker = await workerProvider.getWorkerById(workerLite.id);
 
-    if (worker != null && mounted) {
-      _showWorkerDetails(worker, isAdmin);
-    } else {
-      _showSnackBar('Error al cargar detalles', isError: true);
+      if (!mounted) return;
+
+      if (worker != null) {
+        _showWorkerDetails(worker, isAdmin);
+      } else {
+        _showSnackBar('Error al cargar detalles', isError: true);
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      _showSnackBar(
+        'No se pudieron cargar los detalles del trabajador',
+        isError: true,
+      );
     }
   }
 
-  void _showActionMenuFromLite(WorkerLite workerLite, bool isAdmin) async {
-    final workerProvider = Provider.of<WorkerProvider>(context, listen: false);
+  Future<void> _showActionMenuFromLite(
+    WorkerLite workerLite,
+    bool isAdmin,
+  ) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    if (!authProvider.isAuthenticated || !authProvider.user!.isAdmin) {
+    if (!authProvider.isAuthenticated ||
+        authProvider.user == null ||
+        !authProvider.user!.isAdmin) {
       _showSnackBar('No tienes permisos para esta acción', isError: true);
       return;
     }
 
-    final worker = await workerProvider.getWorkerById(workerLite.id);
+    try {
+      final workerProvider = Provider.of<WorkerProvider>(
+        context,
+        listen: false,
+      );
 
-    if (worker != null && mounted) {
-      _showActionMenu(worker);
+      final worker = await workerProvider.getWorkerById(workerLite.id);
+
+      if (!mounted) return;
+
+      if (worker != null) {
+        _showActionMenu(worker);
+      } else {
+        _showSnackBar('No se pudo cargar el trabajador', isError: true);
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      _showSnackBar('Error al cargar el trabajador', isError: true);
     }
   }
 
   void _showActionMenu(Worker worker) {
+    const primary = Color(0xFF1769AA);
+    const textDark = Color(0xFF243447);
+    const textMuted = Color(0xFF718096);
+
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.edit, color: Colors.blue),
-                title: const Text('Editar'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showEditWorkerDialog(worker);
-                },
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Indicador
+                  Container(
+                    width: 40,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD8E0EA),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Acciones del trabajador',
+                      style: TextStyle(
+                        color: textDark,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      worker.fullName,
+                      style: const TextStyle(color: textMuted, fontSize: 13),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Editar
+                  _buildActionMenuTile(
+                    icon: Icons.edit_outlined,
+                    title: 'Editar trabajador',
+                    subtitle: 'Modificar sus datos personales',
+                    color: primary,
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showEditWorkerDialog(worker);
+                    },
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Eliminar
+                  _buildActionMenuTile(
+                    icon: Icons.delete_outline,
+                    title: 'Eliminar trabajador',
+                    subtitle: 'Eliminar este registro',
+                    color: const Color(0xFFD94B4B),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showDeleteConfirmation(worker);
+                    },
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Cancelar
+                  _buildActionMenuTile(
+                    icon: Icons.close_rounded,
+                    title: 'Cancelar',
+                    subtitle: 'Cerrar este menú',
+                    color: textMuted,
+                    onTap: () => Navigator.pop(context),
+                  ),
+                ],
               ),
-              ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Eliminar'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showDeleteConfirmation(worker);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.cancel, color: Colors.grey),
-                title: const Text('Cancelar'),
-                onTap: () => Navigator.pop(context),
-              ),
-            ],
+            ),
           ),
         );
       },
     );
   }
 
-  // ============ WIDGETS AUXILIARES ============
-
-  Widget _buildStatusBadge(String text, MaterialColor color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.shade200),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.info, size: 12, color: color.shade700),
-          const SizedBox(width: 4),
-          Text(text, style: TextStyle(fontSize: 12, color: color.shade700)),
-        ],
+  Widget _buildActionMenuTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: const Color(0xFFF4F7FB),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+          child: Row(
+            children: [
+              Container(
+                width: 43,
+                height: 43,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 21),
+              ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Color(0xFF243447),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: Color(0xFF718096),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: color.withValues(alpha: 0.8),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1716,153 +1963,435 @@ class WorkersScreenState extends State<WorkersScreen> {
     );
   }
 
-  void _showDepartmentDetails(int departmentId) async {
-    final departmentProvider = Provider.of<DepartmentProvider>(
-      context,
-      listen: false,
-    );
+  Future<void> _showDepartmentDetails(int departmentId) async {
+    try {
+      final departmentProvider = Provider.of<DepartmentProvider>(
+        context,
+        listen: false,
+      );
 
-    final department = await departmentProvider.getDepartmentById(departmentId);
+      final department = await departmentProvider.getDepartmentById(
+        departmentId,
+      );
 
-    if (department == null) {
-      _showSnackBar('Departamento no encontrado', isError: true);
-      return;
-    }
+      if (!mounted) return;
 
-    if (!mounted) return;
+      if (department == null) {
+        _showSnackBar('Departamento no encontrado', isError: true);
+        return;
+      }
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: Colors.orange[100],
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.work_outline,
-                  size: 40,
-                  color: Colors.orange[700],
-                ),
+      showDialog(
+        context: context,
+        builder: (dialogContext) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 420),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 25,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              Text(
-                department.name,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.orange[800],
-                ),
-                textAlign: TextAlign.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Encabezado
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(24, 26, 24, 24),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF1769AA), Color(0xFF104C80)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(24),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 76,
+                          height: 76,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.16),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.3),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.account_balance_outlined,
+                            size: 36,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Departamento',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.1,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          department.name,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 21,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Información
+                  Padding(
+                    padding: const EdgeInsets.all(22),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Información de contacto',
+                          style: TextStyle(
+                            color: Color(0xFF243447),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+
+                        if (department.phone.isNotEmpty)
+                          _buildDialogDetailItem('Teléfono', department.phone)
+                        else
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF4F7FB),
+                              borderRadius: BorderRadius.circular(13),
+                              border: Border.all(
+                                color: const Color(0xFFE4EAF2),
+                              ),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  color: Color(0xFF718096),
+                                  size: 19,
+                                ),
+                                SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'No hay teléfono registrado',
+                                    style: TextStyle(
+                                      color: Color(0xFF718096),
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                        const SizedBox(height: 22),
+
+                        // Acciones
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () {
+                                  Navigator.pop(dialogContext);
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF1769AA),
+                                  side: const BorderSide(
+                                    color: Color(0xFF1769AA),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: const Text('Cerrar'),
+                              ),
+                            ),
+
+                            if (department.phone.isNotEmpty) ...[
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    Navigator.pop(dialogContext);
+                                    _makePhoneCall(department.phone);
+                                  },
+                                  icon: const Icon(
+                                    Icons.call_outlined,
+                                    size: 18,
+                                  ),
+                                  label: const Text('Llamar'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF159B72),
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              if (department.phone.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                _buildDialogDetailItem('Teléfono', department.phone),
-              ],
-            ],
-          ),
-        ),
-        actions: [
-          if (department.phone.isNotEmpty)
-            ElevatedButton.icon(
-              icon: const Icon(Icons.phone, size: 18),
-              label: const Text('Llamar'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-                _makePhoneCall(department.phone);
-              },
             ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
-          ),
-        ],
-      ),
-    );
+          );
+        },
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      _showSnackBar('Error al cargar el departamento', isError: true);
+    }
   }
 
-  void _showLocalDetails(int localId) async {
-    final localProvider = Provider.of<LocalProvider>(context, listen: false);
+  Future<void> _showLocalDetails(int localId) async {
+    try {
+      final localProvider = Provider.of<LocalProvider>(context, listen: false);
 
-    final local = await localProvider.getLocalById(localId);
+      final local = await localProvider.getLocalById(localId);
 
-    if (local == null) {
-      _showSnackBar('Local no encontrado', isError: true);
-      return;
-    }
+      if (!mounted) return;
 
-    if (!mounted) return;
+      if (local == null) {
+        _showSnackBar('Local no encontrado', isError: true);
+        return;
+      }
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: Colors.green[100],
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.business_outlined,
-                  size: 40,
-                  color: Colors.green[700],
-                ),
+      showDialog(
+        context: context,
+        builder: (dialogContext) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 420),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 25,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              Text(
-                local.name,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green[800],
-                ),
-                textAlign: TextAlign.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Encabezado
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.fromLTRB(24, 26, 24, 24),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF1769AA), Color(0xFF104C80)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(24),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 76,
+                          height: 76,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.16),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.3),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.business_outlined,
+                            size: 36,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Local',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.1,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          local.name,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 21,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Información
+                  Padding(
+                    padding: const EdgeInsets.all(22),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Información de contacto',
+                          style: TextStyle(
+                            color: Color(0xFF243447),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+
+                        if (local.phone.isNotEmpty)
+                          _buildDialogDetailItem('Teléfono', local.phone)
+                        else
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF4F7FB),
+                              borderRadius: BorderRadius.circular(13),
+                              border: Border.all(
+                                color: const Color(0xFFE4EAF2),
+                              ),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  color: Color(0xFF718096),
+                                  size: 19,
+                                ),
+                                SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'No hay teléfono registrado',
+                                    style: TextStyle(
+                                      color: Color(0xFF718096),
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                        const SizedBox(height: 22),
+
+                        // Acciones
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () {
+                                  Navigator.pop(dialogContext);
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF1769AA),
+                                  side: const BorderSide(
+                                    color: Color(0xFF1769AA),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: const Text('Cerrar'),
+                              ),
+                            ),
+
+                            if (local.phone.isNotEmpty) ...[
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    Navigator.pop(dialogContext);
+                                    _makePhoneCall(local.phone);
+                                  },
+                                  icon: const Icon(
+                                    Icons.call_outlined,
+                                    size: 18,
+                                  ),
+                                  label: const Text('Llamar'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF159B72),
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              if (local.phone.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                _buildDialogDetailItem('Teléfono', local.phone),
-              ],
-            ],
-          ),
-        ),
-        actions: [
-          if (local.phone.isNotEmpty)
-            ElevatedButton.icon(
-              icon: const Icon(Icons.phone, size: 18),
-              label: const Text('Llamar'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-                _makePhoneCall(local.phone);
-              },
             ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
-          ),
-        ],
-      ),
-    );
+          );
+        },
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      _showSnackBar('Error al cargar el local', isError: true);
+    }
   }
 
   Widget _buildDialogDetailItem(String label, String value) {

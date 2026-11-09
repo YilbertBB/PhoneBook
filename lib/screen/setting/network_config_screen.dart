@@ -10,7 +10,6 @@ class NetworkConfigScreen extends StatelessWidget {
   static const Color _textMuted = Color(0xFF718096);
   static const Color _warning = Color(0xFFE49A27);
   static const Color _danger = Color(0xFFD94B4B);
-  static const Color _success = Color(0xFF159B72);
 
   @override
   Widget build(BuildContext context) {

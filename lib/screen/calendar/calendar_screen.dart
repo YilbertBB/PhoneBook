@@ -407,400 +407,724 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   void _showEfemeridesList() {
-    // final provider = Provider.of<EfemerideProvider>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final isAdmin = authProvider.user?.isAdmin ?? false;
 
+    const primary = Color(0xFF1769AA);
+    const primaryDark = Color(0xFF104C80);
+    const background = Color(0xFFF4F7FB);
+    const textDark = Color(0xFF243447);
+    const textMuted = Color(0xFF718096);
+    const border = Color(0xFFE4EAF2);
+    const warning = Color(0xFFE49A27);
+
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.9,
-            maxHeight: MediaQuery.of(context).size.height * 0.8,
+            maxWidth: 560,
+            maxHeight: MediaQuery.of(dialogContext).size.height * 0.85,
           ),
-          padding: EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Icon(Icons.list, color: Colors.purple[700], size: 24),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Lista de Efemérides',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.purple[700],
-                      ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 30,
+                  offset: const Offset(0, 12),
+                ),
+              ],
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                // Encabezado
+                Container(
+                  padding: const EdgeInsets.fromLTRB(22, 20, 16, 20),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [primary, primaryDark],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
                   ),
-
-                  // NUEVO: Indicador de estado offline
-                  Consumer<EfemerideProvider>(
-                    builder: (context, efProvider, child) {
-                      if (efProvider.isOffline) {
-                        return Container(
-                          margin: EdgeInsets.only(right: 8),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.orange[50],
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.orange[200]!),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.cloud_off,
-                                size: 12,
-                                color: Colors.orange[700],
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                'Offline',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.orange[700],
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                      return SizedBox.shrink();
-                    },
-                  ),
-
-                  IconButton(
-                    icon: Icon(Icons.close, size: 20),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-
-              SizedBox(height: 16),
-
-              // Estadísticas
-              Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.purple[50],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      children: [
-                        Consumer<EfemerideProvider>(
-                          builder: (context, efProvider, child) {
-                            return Column(
-                              children: [
-                                Text(
-                                  'Total:',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                                Text(
-                                  '${efProvider.efemerides.length}${efProvider.isOffline ? ' (offline)' : ''}',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: efProvider.isOffline
-                                        ? Colors.orange[700]
-                                        : Colors.purple[700],
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                      ],
-                    ),
-
-                    if (isAdmin)
-                      Row(
-                        children: [
-                          // NUEVO: Botón de sincronización si está offline
-                          Consumer<EfemerideProvider>(
-                            builder: (context, efProvider, child) {
-                              if (efProvider.isOffline) {
-                                return IconButton(
-                                  icon: Icon(
-                                    Icons.cloud_upload,
-                                    size: 20,
-                                    color: Colors.purple[700],
-                                  ),
-                                  onPressed: efProvider.syncing
-                                      ? null
-                                      : () => _syncEfemerides(efProvider),
-                                  tooltip: 'Sincronizar efemérides',
-                                );
-                              }
-                              return SizedBox.shrink();
-                            },
-                          ),
-
-                          ElevatedButton.icon(
-                            icon: Icon(
-                              Icons.add,
-                              size: 18,
-                              color: Colors.white,
-                            ),
-                            label: Text(
-                              'Agregar',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            onPressed: () {
-                              Navigator.pop(context);
-                              _showAddEfemerideDialog();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.purple[700],
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                            ),
-                          ),
-                        ],
+                        child: const Icon(
+                          Icons.event_note_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                       ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 16),
-
-              // Lista
-              Expanded(
-                child: Consumer<EfemerideProvider>(
-                  builder: (context, efProvider, child) {
-                    if (efProvider.loading && !efProvider.hasLoaded) {
-                      return Center(
-                        child: CircularProgressIndicator(
-                          color: Colors.purple[700],
-                        ),
-                      );
-                    }
-
-                    if (efProvider.hasError && !efProvider.hasLoaded) {
-                      return Center(
+                      const SizedBox(width: 13),
+                      const Expanded(
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              efProvider.isOffline
-                                  ? Icons.cloud_off
-                                  : Icons.error_outline,
-                              size: 60,
-                              color: efProvider.isOffline
-                                  ? Colors.orange
-                                  : Colors.red,
-                            ),
-                            SizedBox(height: 16),
                             Text(
-                              efProvider.isOffline
-                                  ? 'Modo offline'
-                                  : 'Error al cargar efemérides',
+                              'Efemérides',
                               style: TextStyle(
-                                fontSize: 16,
+                                color: Colors.white,
+                                fontSize: 19,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.grey[700],
                               ),
                             ),
-                            SizedBox(height: 8),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 32,
-                              ),
-                              child: Text(
-                                efProvider.isOffline && efProvider.hasLocalData
-                                    ? 'Mostrando ${efProvider.localDataCount} efemérides almacenadas localmente.'
-                                    : efProvider.error,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.grey[600]),
+                            SizedBox(height: 3),
+                            Text(
+                              'Listado de fechas y acontecimientos',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
                               ),
                             ),
                           ],
                         ),
-                      );
-                    }
+                      ),
+                      Consumer<EfemerideProvider>(
+                        builder: (context, efProvider, child) {
+                          if (!efProvider.isOffline) {
+                            return const SizedBox.shrink();
+                          }
 
-                    return efProvider.efemerides.isEmpty
-                        ? Center(
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 9,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: warning.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.25),
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.cloud_off_rounded,
+                                  size: 13,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(width: 5),
+                                Text(
+                                  'Offline',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          color: Colors.white,
+                        ),
+                        tooltip: 'Cerrar',
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Estadísticas y acciones
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+                  child: Consumer<EfemerideProvider>(
+                    builder: (context, efProvider, child) {
+                      return Container(
+                        padding: const EdgeInsets.all(15),
+                        decoration: BoxDecoration(
+                          color: background,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: border),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(13),
+                              ),
+                              child: const Icon(
+                                Icons.calendar_month_rounded,
+                                color: primary,
+                                size: 25,
+                              ),
+                            ),
+                            const SizedBox(width: 13),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Total registradas',
+                                    style: TextStyle(
+                                      color: textMuted,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    '${efProvider.efemerides.length}',
+                                    style: TextStyle(
+                                      color: efProvider.isOffline
+                                          ? warning
+                                          : textDark,
+                                      fontSize: 23,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (isAdmin) ...[
+                              if (efProvider.isOffline)
+                                IconButton(
+                                  onPressed: efProvider.syncing
+                                      ? null
+                                      : () => _syncEfemerides(efProvider),
+                                  tooltip: 'Sincronizar efemérides',
+                                  icon: efProvider.syncing
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: primary,
+                                          ),
+                                        )
+                                      : const Icon(
+                                          Icons.cloud_upload_rounded,
+                                          color: primary,
+                                        ),
+                                ),
+                              const SizedBox(width: 5),
+                              FilledButton.icon(
+                                onPressed: () {
+                                  Navigator.pop(dialogContext);
+                                  _showAddEfemerideDialog();
+                                },
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: primary,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 11,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(11),
+                                  ),
+                                ),
+                                icon: const Icon(Icons.add_rounded, size: 18),
+                                label: const Text(
+                                  'Agregar',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                // Separador
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Divider(height: 1, color: border),
+                ),
+
+                // Lista
+                Expanded(
+                  child: Consumer<EfemerideProvider>(
+                    builder: (context, efProvider, child) {
+                      if (efProvider.loading && !efProvider.hasLoaded) {
+                        return const Center(
+                          child: CircularProgressIndicator(color: primary),
+                        );
+                      }
+
+                      if (efProvider.hasError && !efProvider.hasLoaded) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(28),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
                                   efProvider.isOffline
-                                      ? Icons.cloud_off
-                                      : Icons.event_note,
-                                  size: 60,
+                                      ? Icons.cloud_off_rounded
+                                      : Icons.error_outline_rounded,
+                                  size: 55,
                                   color: efProvider.isOffline
-                                      ? Colors.orange[300]
-                                      : Colors.grey[300],
+                                      ? warning
+                                      : Colors.redAccent,
                                 ),
-                                SizedBox(height: 16),
+                                const SizedBox(height: 16),
+                                Text(
+                                  efProvider.isOffline
+                                      ? 'Modo sin conexión'
+                                      : 'Error al cargar efemérides',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: textDark,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  efProvider.isOffline &&
+                                          efProvider.hasLocalData
+                                      ? 'Mostrando ${efProvider.localDataCount} efemérides almacenadas localmente.'
+                                      : efProvider.error,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: textMuted,
+                                    fontSize: 13,
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      if (efProvider.efemerides.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(28),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 76,
+                                  height: 76,
+                                  decoration: BoxDecoration(
+                                    color: background,
+                                    borderRadius: BorderRadius.circular(22),
+                                  ),
+                                  child: Icon(
+                                    efProvider.isOffline
+                                        ? Icons.cloud_off_rounded
+                                        : Icons.event_note_rounded,
+                                    size: 38,
+                                    color: textMuted.withValues(alpha: 0.6),
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
                                 Text(
                                   efProvider.isOffline &&
                                           efProvider.hasLocalData
                                       ? 'No hay efemérides locales'
                                       : 'No hay efemérides registradas',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: textDark,
                                     fontSize: 16,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                SizedBox(height: 8),
+                                const SizedBox(height: 7),
                                 Text(
                                   efProvider.isOffline
                                       ? 'Conéctate a internet para cargar las efemérides.'
-                                      : 'Agrega la primera efeméride',
-                                  style: TextStyle(
-                                    color: Colors.grey[500],
-                                    fontSize: 14,
+                                      : 'Agrega la primera efeméride para comenzar.',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: textMuted,
+                                    fontSize: 13,
                                   ),
                                 ),
                               ],
                             ),
-                          )
-                        : ListView.separated(
-                            itemCount: efProvider.efemerides.length,
-                            separatorBuilder: (context, index) =>
-                                Divider(height: 1),
-                            itemBuilder: (context, index) {
-                              final efemeride = efProvider.efemerides[index];
-                              return ListTile(
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                leading: Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: Colors.purple[100],
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      '${efemeride.fecha.day}',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.purple[700],
+                          ),
+                        );
+                      }
+
+                      return ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
+                        itemCount: efProvider.efemerides.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 9),
+                        itemBuilder: (context, index) {
+                          final efemeride = efProvider.efemerides[index];
+
+                          return Material(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(14),
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (detailContext) => Dialog(
+                                    backgroundColor: Colors.transparent,
+                                    insetPadding: const EdgeInsets.all(20),
+                                    child: Container(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 420,
                                       ),
-                                    ),
-                                  ),
-                                ),
-                                title: Text(
-                                  efemeride.dato,
-                                  style: TextStyle(fontWeight: FontWeight.w500),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                subtitle: Text(
-                                  '${efemeride.fecha.day}/${efemeride.fecha.month}',
-                                  style: TextStyle(color: Colors.grey[600]),
-                                ),
-                                trailing: isAdmin
-                                    ? Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          IconButton(
-                                            icon: Icon(
-                                              Icons.edit,
-                                              color: Colors.blue,
-                                              size: 20,
-                                            ),
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                              _editEfemeride(efemeride);
-                                            },
-                                          ),
-                                          IconButton(
-                                            icon: Icon(
-                                              Icons.delete,
-                                              color: Colors.red,
-                                              size: 20,
-                                            ),
-                                            onPressed: () =>
-                                                _deleteEfemeride(efemeride),
-                                          ),
-                                        ],
-                                      )
-                                    : null,
-                                onTap: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: Text(efemeride.dato),
-                                      content: SingleChildScrollView(
+                                      padding: const EdgeInsets.all(22),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(22),
+                                      ),
+                                      child: SingleChildScrollView(
                                         child: Column(
                                           mainAxisSize: MainAxisSize.min,
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
+                                            Row(
+                                              children: [
+                                                Container(
+                                                  width: 42,
+                                                  height: 42,
+                                                  decoration: BoxDecoration(
+                                                    color: primary.withValues(
+                                                      alpha: 0.1,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.event_note_rounded,
+                                                    color: primary,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                const Expanded(
+                                                  child: Text(
+                                                    'Detalle de efeméride',
+                                                    style: TextStyle(
+                                                      color: textDark,
+                                                      fontSize: 17,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                                IconButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                        detailContext,
+                                                      ),
+                                                  icon: const Icon(
+                                                    Icons.close_rounded,
+                                                    color: textMuted,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 18),
                                             Text(
-                                              '📅 Fecha: ${efemeride.displayDate}',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                color: Colors.grey[700],
+                                              efemeride.dato,
+                                              style: const TextStyle(
+                                                color: textDark,
+                                                fontSize: 19,
+                                                fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                            SizedBox(height: 12),
-                                            if (efemeride.detalle.isNotEmpty)
+                                            const SizedBox(height: 14),
+                                            Container(
+                                              padding: const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                color: background,
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons
+                                                        .calendar_today_rounded,
+                                                    color: primary,
+                                                    size: 18,
+                                                  ),
+                                                  const SizedBox(width: 9),
+                                                  Expanded(
+                                                    child: Text(
+                                                      efemeride.displayDate,
+                                                      style: const TextStyle(
+                                                        color: textDark,
+                                                        fontSize: 13,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            if (efemeride
+                                                .detalle
+                                                .isNotEmpty) ...[
+                                              const SizedBox(height: 14),
+                                              const Text(
+                                                'Descripción',
+                                                style: TextStyle(
+                                                  color: textMuted,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 7),
                                               Container(
-                                                padding: EdgeInsets.all(12),
+                                                width: double.infinity,
+                                                padding: const EdgeInsets.all(
+                                                  14,
+                                                ),
                                                 decoration: BoxDecoration(
-                                                  color: Colors.grey[50],
+                                                  color: background,
                                                   borderRadius:
-                                                      BorderRadius.circular(8),
+                                                      BorderRadius.circular(12),
+                                                  border: Border.all(
+                                                    color: border,
+                                                  ),
                                                 ),
                                                 child: Text(
                                                   efemeride.detalle,
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    color: Colors.grey[800],
+                                                  style: const TextStyle(
+                                                    color: textDark,
+                                                    fontSize: 13,
+                                                    height: 1.5,
                                                   ),
                                                 ),
                                               ),
+                                            ],
+                                            const SizedBox(height: 20),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.end,
+                                              children: [
+                                                if (isAdmin)
+                                                  TextButton.icon(
+                                                    onPressed: () {
+                                                      Navigator.pop(
+                                                        detailContext,
+                                                      );
+                                                      Navigator.pop(
+                                                        dialogContext,
+                                                      );
+                                                      _editEfemeride(efemeride);
+                                                    },
+                                                    icon: const Icon(
+                                                      Icons.edit_rounded,
+                                                      size: 17,
+                                                    ),
+                                                    label: const Text('Editar'),
+                                                    style: TextButton.styleFrom(
+                                                      foregroundColor: primary,
+                                                    ),
+                                                  ),
+                                                const SizedBox(width: 8),
+                                                FilledButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                        detailContext,
+                                                      ),
+                                                  style: FilledButton.styleFrom(
+                                                    backgroundColor: primary,
+                                                    foregroundColor:
+                                                        Colors.white,
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            10,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                  child: const Text('Cerrar'),
+                                                ),
+                                              ],
+                                            ),
                                           ],
                                         ),
                                       ),
-                                      actions: [
-                                        if (isAdmin)
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                              _editEfemeride(efemeride);
-                                            },
-                                            child: Text('Editar'),
-                                          ),
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                          child: Text('Cerrar'),
-                                        ),
-                                      ],
                                     ),
-                                  );
-                                },
-                              );
-                            },
+                                  ),
+                                );
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 48,
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        color: primary.withValues(alpha: 0.09),
+                                        borderRadius: BorderRadius.circular(13),
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            '${efemeride.fecha.day}',
+                                            style: const TextStyle(
+                                              color: primary,
+                                              fontSize: 19,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${efemeride.fecha.month}',
+                                            style: const TextStyle(
+                                              color: textMuted,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 13),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            efemeride.dato,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              color: textDark,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.calendar_today_outlined,
+                                                size: 12,
+                                                color: textMuted,
+                                              ),
+                                              const SizedBox(width: 5),
+                                              Text(
+                                                '${efemeride.fecha.day}/${efemeride.fecha.month}',
+                                                style: const TextStyle(
+                                                  color: textMuted,
+                                                  fontSize: 11,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (isAdmin) ...[
+                                      IconButton(
+                                        visualDensity: VisualDensity.compact,
+                                        tooltip: 'Editar',
+                                        onPressed: () {
+                                          Navigator.pop(dialogContext);
+                                          _editEfemeride(efemeride);
+                                        },
+                                        icon: const Icon(
+                                          Icons.edit_outlined,
+                                          color: primary,
+                                          size: 19,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        visualDensity: VisualDensity.compact,
+                                        tooltip: 'Eliminar',
+                                        onPressed: () =>
+                                            _deleteEfemeride(efemeride),
+                                        icon: const Icon(
+                                          Icons.delete_outline_rounded,
+                                          color: Color(0xFFD94B4B),
+                                          size: 19,
+                                        ),
+                                      ),
+                                    ] else
+                                      const Icon(
+                                        Icons.chevron_right_rounded,
+                                        color: textMuted,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           );
-                  },
+                        },
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
+
+                // Pie
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: background,
+                    border: Border(top: BorderSide(color: border)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outline_rounded,
+                        size: 15,
+                        color: textMuted,
+                      ),
+                      const SizedBox(width: 7),
+                      const Expanded(
+                        child: Text(
+                          'Selecciona una efeméride para ver sus detalles.',
+                          style: TextStyle(color: textMuted, fontSize: 11),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: const Text(
+                          'Cerrar',
+                          style: TextStyle(
+                            color: primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -808,83 +1132,254 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   void _showStatistics() {
+    const primary = Color(0xFF1769AA);
+    const primaryDark = Color(0xFF104C80);
+    const background = Color(0xFFF4F7FB);
+    const textDark = Color(0xFF243447);
+    const textMuted = Color(0xFF718096);
+    const border = Color(0xFFE4EAF2);
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.analytics, color: Colors.blue[700]),
-            SizedBox(width: 8),
-            Flexible(
-              child: Text('Estadísticas del Mes', softWrap: true, maxLines: 2),
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 430),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 25,
+                  offset: const Offset(0, 10),
+                ),
+              ],
             ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Estadísticas por tipo
-            Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  _buildStatItem(
-                    'Total de Eventos',
-                    Icons.event,
-                    Colors.blue[700]!,
-                    _getTotalEventCountForMonth().toString(),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Encabezado
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(22),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [primary, primaryDark],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                   ),
-                  SizedBox(height: 12),
-                  _buildStatItem(
-                    'Cumpleaños',
-                    Icons.cake,
-                    Colors.pink[700]!,
-                    _getEventCountByType(EventType.birthday).toString(),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(
+                          Icons.analytics_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 13),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Estadísticas del mes',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Resumen de eventos registrados',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 12),
-                  _buildStatItem(
-                    'Efemérides',
-                    Icons.history,
-                    Colors.purple[700]!,
-                    _getEventCountByType(EventType.efemeride).toString(),
-                  ),
-                ],
-              ),
-            ),
+                ),
 
-            SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      // Total de eventos
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(17),
+                        decoration: BoxDecoration(
+                          color: primary.withValues(alpha: 0.07),
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                            color: primary.withValues(alpha: 0.12),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            const Icon(
+                              Icons.event_available_rounded,
+                              color: primary,
+                              size: 27,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _getTotalEventCountForMonth().toString(),
+                              style: const TextStyle(
+                                color: primaryDark,
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            const Text(
+                              'Total de eventos',
+                              style: TextStyle(
+                                color: textMuted,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
 
-            // Información del mes
-            Container(
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey[200]!),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
-                  SizedBox(width: 8),
-                  Text(
-                    'Mes: ${_getMonthName(_focusedDay.month)} ${_focusedDay.year}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                      const SizedBox(height: 14),
+
+                      // Estadísticas por tipo
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildStatItem(
+                              'Cumpleaños',
+                              Icons.cake_rounded,
+                              const Color(0xFFD95B83),
+                              _getEventCountByType(
+                                EventType.birthday,
+                              ).toString(),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildStatItem(
+                              'Efemérides',
+                              Icons.history_rounded,
+                              primary,
+                              _getEventCountByType(
+                                EventType.efemeride,
+                              ).toString(),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Mes seleccionado
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 13,
+                        ),
+                        decoration: BoxDecoration(
+                          color: background,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: border),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 34,
+                              height: 34,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(9),
+                              ),
+                              child: const Icon(
+                                Icons.calendar_month_rounded,
+                                color: primary,
+                                size: 19,
+                              ),
+                            ),
+                            const SizedBox(width: 11),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Período seleccionado',
+                                    style: TextStyle(
+                                      color: textMuted,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    '${_getMonthName(_focusedDay.month)} ${_focusedDay.year}',
+                                    style: const TextStyle(
+                                      color: textDark,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 18),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: () => Navigator.pop(dialogContext),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 13),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(11),
+                            ),
+                          ),
+                          child: const Text(
+                            'Cerrar',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cerrar'),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1116,27 +1611,34 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
           ),
           const SizedBox(width: 11),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Calendario',
-                style: TextStyle(
-                  color: _textDark,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
+          const Expanded(
+            // 👈 CLAVE
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Calendario',
+                  maxLines: 1, // 👈
+                  overflow: TextOverflow.ellipsis, // 👈
+                  style: TextStyle(
+                    color: _textDark,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ),
-              Text(
-                'Directorio Telefónico Desoft',
-                style: TextStyle(
-                  color: _textMuted,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
+                Text(
+                  'Directorio Telefónico Desoft',
+                  maxLines: 1, // 👈
+                  overflow: TextOverflow.ellipsis, // 👈
+                  style: TextStyle(
+                    color: _textMuted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -1372,29 +1874,65 @@ class _CalendarScreenState extends State<CalendarScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Filtrar eventos',
-            style: TextStyle(
-              color: _textDark,
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-            ),
+          Row(
+            children: [
+              const Icon(Icons.filter_alt_rounded, size: 16, color: _primary),
+              const SizedBox(width: 8),
+              const Expanded(
+                // 👈 CLAVE
+                child: Text(
+                  'Filtrar eventos',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis, // 👈
+                  style: TextStyle(
+                    color: _textDark,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8), // 👈 separación fija
+              // contador opcional
+              Flexible(
+                // 👈 opcional
+                child: Text(
+                  '${_getTotalEventCountForMonth()}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: _textMuted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 9,
-            runSpacing: 9,
+          Row(
             children: [
-              _buildFilterButton('todos', 'Todos', Icons.event_rounded),
-              _buildFilterButton(
-                'cumpleaños',
-                'Cumpleaños',
-                Icons.cake_rounded,
+              Expanded(
+                child: _buildFilterButton(
+                  'todos',
+                  _filterLabel('Todos', 'Todos'),
+                  Icons.event_rounded,
+                ),
               ),
-              _buildFilterButton(
-                'efemerides',
-                'Efemérides',
-                Icons.history_rounded,
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildFilterButton(
+                  'cumpleaños',
+                  _filterLabel('Cumpleaños', 'Cumpl.'),
+                  Icons.cake_rounded,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildFilterButton(
+                  'efemerides',
+                  _filterLabel('Efemérides', 'Efem.'),
+                  Icons.history_rounded,
+                ),
               ),
             ],
           ),
@@ -2103,6 +2641,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
+  String _filterLabel(String full, String short) {
+    return MediaQuery.of(context).size.width < 420 ? short : full;
+  }
+
   Widget _buildFilterButton(String value, String label, IconData icon) {
     final isSelected = _selectedFilter == value;
     final color = value == 'cumpleaños'
@@ -2123,7 +2665,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 6,
+            vertical: 10,
+          ), // 👈 menos padding
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(11),
             border: Border.all(
@@ -2131,16 +2676,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
             ),
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min, // 👈 no fuerza ancho extra
             children: [
-              Icon(icon, size: 16, color: isSelected ? Colors.white : color),
-              const SizedBox(width: 7),
-              Text(
-                label,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : _textDark,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
+              Icon(
+                icon,
+                size: 14,
+                color: isSelected ? Colors.white : color,
+              ), // 👈 14 en vez de 15
+              const SizedBox(width: 4), // 👈 4 en vez de 5
+              Flexible(
+                // 👈 el texto puede encoger
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : _textDark,
+                    fontSize: 11, // 👈 11 en vez de 11.5
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],

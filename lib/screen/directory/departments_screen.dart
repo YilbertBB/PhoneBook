@@ -1729,177 +1729,286 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
     LocalProvider localProvider,
     bool isAdmin,
   ) {
+    const primary = Color(0xFF1769AA);
+    const primaryDark = Color(0xFF104C80);
+    const textDark = Color(0xFF243447);
+    const textMuted = Color(0xFF718096);
+    const border = Color(0xFFE4EAF2);
+    const background = Color(0xFFF4F7FB);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
+      builder: (sheetContext) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(sheetContext).size.height * 0.92,
         ),
-        child: SingleChildScrollView(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: SafeArea(
+          top: false,
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Handle para arrastrar
-              Center(
+              // Indicador de arrastre
+              Padding(
+                padding: const EdgeInsets.only(top: 12, bottom: 8),
                 child: Container(
-                  width: 40,
-                  height: 4,
+                  width: 42,
+                  height: 5,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
+                    color: const Color(0xFFD8E0EA),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
 
-              // Header con icono
-              Center(
-                child: Column(
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.orange[100],
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          department.name.length >= 2
-                              ? department.name.substring(0, 2).toUpperCase()
-                              : department.name.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.orange[700],
-                          ),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(22, 12, 22, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Encabezado
+                      Center(
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 92,
+                              height: 92,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [primary, primaryDark],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: primary.withValues(alpha: 0.22),
+                                    blurRadius: 18,
+                                    offset: const Offset(0, 7),
+                                  ),
+                                ],
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                department.name.length >= 2
+                                    ? department.name
+                                          .substring(0, 2)
+                                          .toUpperCase()
+                                    : department.name.toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 27,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              department.name,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 23,
+                                fontWeight: FontWeight.w800,
+                                color: textDark,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 13,
+                                vertical: 7,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEAF3FC),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.account_balance_outlined,
+                                    size: 15,
+                                    color: primary,
+                                  ),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    'Departamento',
+                                    style: TextStyle(
+                                      color: primaryDark,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      department.name,
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
+
+                      const SizedBox(height: 28),
+
+                      // Información
+                      const Row(
+                        children: [
+                          Icon(
+                            Icons.contact_page_outlined,
+                            color: primary,
+                            size: 19,
+                          ),
+                          SizedBox(width: 9),
+                          Text(
+                            'Información del departamento',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: textDark,
+                            ),
+                          ),
+                        ],
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
 
-              const SizedBox(height: 24),
-              Divider(color: Colors.grey[200]),
+                      const SizedBox(height: 14),
 
-              // Información detallada
-              _buildDetailSection(
-                icon: Icons.phone,
-                label: 'Teléfono',
-                value: department.phone.isNotEmpty
-                    ? department.phone
-                    : 'No disponible',
-                color: Colors.orange[700]!,
-              ),
-
-              const SizedBox(height: 20),
-
-              // Acciones de contacto
-              if (department.phone.isNotEmpty) ...[
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.orange[50],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildContactAction(
-                        Icons.phone,
-                        'Llamar',
-                        Colors.green,
-                        () {
-                          Navigator.pop(context);
-                          _makePhoneCall(department.phone);
-                        },
+                      _buildDetailSection(
+                        icon: Icons.phone_outlined,
+                        label: 'Teléfono',
+                        value: department.phone.isNotEmpty
+                            ? department.phone
+                            : 'No disponible',
+                        color: primary,
                       ),
-                      _buildContactAction(
-                        Icons.copy,
-                        'Copiar',
-                        Colors.orange,
-                        () {
-                          Navigator.pop(context);
-                          _copyPhoneNumber(department.phone);
-                        },
-                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Contacto rápido
+                      if (department.phone.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: background,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: border),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Contacto rápido',
+                                style: TextStyle(
+                                  color: textDark,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 14),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildContactAction(
+                                      Icons.call_outlined,
+                                      'Llamar',
+                                      const Color(0xFF159B72),
+                                      () {
+                                        Navigator.pop(sheetContext);
+                                        _makePhoneCall(department.phone);
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _buildContactAction(
+                                      Icons.copy_rounded,
+                                      'Copiar',
+                                      const Color(0xFFE49A27),
+                                      () {
+                                        Navigator.pop(sheetContext);
+                                        _copyPhoneNumber(department.phone);
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                      ],
+
+                      // Administración
+                      if (isAdmin) ...[
+                        const Divider(color: border, height: 25),
+                        const Text(
+                          'Administración',
+                          style: TextStyle(
+                            color: textMuted,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.7,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                icon: const Icon(Icons.edit_outlined, size: 18),
+                                label: const Text('Editar'),
+                                onPressed: () {
+                                  Navigator.pop(sheetContext);
+                                  _showEditDepartmentDialog(department);
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: primary,
+                                  side: const BorderSide(color: primary),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 15,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(13),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  size: 18,
+                                ),
+                                label: const Text('Eliminar'),
+                                onPressed: () {
+                                  Navigator.pop(sheetContext);
+                                  _showDeleteConfirmation(department);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFD94B4B),
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 15,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(13),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
-              ],
-
-              // Acciones administrativas
-              if (isAdmin) ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        icon: const Icon(
-                          Icons.edit,
-                          size: 18,
-                          color: Colors.orange,
-                        ),
-                        label: const Text(
-                          'Editar',
-                          style: TextStyle(color: Colors.orange),
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context);
-                          _showEditDepartmentDialog(department);
-                        },
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          side: const BorderSide(color: Colors.orange),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        icon: const Icon(
-                          Icons.delete,
-                          size: 18,
-                          color: Colors.white,
-                        ),
-                        label: const Text(
-                          'Eliminar',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context);
-                          _showDeleteConfirmation(department);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-
-              SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
+              ),
             ],
           ),
         ),
@@ -1913,37 +2022,46 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
     required String value,
     required Color color,
   }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF4F7FB),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE4EAF2)),
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+              color: color.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, size: 20, color: color),
+            child: Icon(icon, size: 21, color: color),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 13),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   label,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF718096),
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 5),
                 Text(
                   value,
-                  style: const TextStyle(fontSize: 16, color: Colors.black87),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: Color(0xFF243447),
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),
@@ -1959,27 +2077,38 @@ class DepartmentsScreenState extends State<DepartmentsScreen> {
     Color color,
     VoidCallback onTap,
   ) {
-    return Column(
-      children: [
-        IconButton(
-          icon: Icon(icon, size: 28),
-          color: color,
-          onPressed: onTap,
-          style: IconButton.styleFrom(
-            backgroundColor: Colors.white,
-            padding: const EdgeInsets.all(12),
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 13),
+          child: Column(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Icon(icon, size: 21, color: color),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: color,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
+      ),
     );
   }
 
